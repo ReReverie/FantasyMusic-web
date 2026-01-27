@@ -33,13 +33,13 @@ const routes = [
     ]
   },
   {
-    path: '/playlist',
+    path: '/musiclist',
     component: Layout,
     children: [
       {
         path: '',
-        name: 'Playlist',
-        component: () => import('@/views/playlist/index.vue'),
+        name: 'MusicList',
+        component: () => import('@/views/musiclist/index.vue'),
         meta: { title: '我的歌单', icon: 'Collection' }
       }
     ]

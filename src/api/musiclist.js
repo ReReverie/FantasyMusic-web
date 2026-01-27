@@ -1,35 +1,35 @@
 import request from '@/utils/request'
 
 // 获取歌单列表
-export function getPlaylist(params) {
+export function getMusicLists(params) {
   return request({
-    url: '/playlist/list',
+    url: '/musiclist/list',
     method: 'get',
     params
   })
 }
 
 // 创建歌单
-export function createPlaylist(data) {
+export function createMusicList(data) {
   return request({
-    url: '/playlist/create',
+    url: '/musiclist/create',
     method: 'post',
     data
   })
 }
 
 // 获取歌单详情
-export function getPlaylistDetail(id) {
+export function getMusicListDetail(id) {
   return request({
-    url: `/playlist/${id}`,
+    url: `/musiclist/${id}`,
     method: 'get'
   })
 }
 
 // 添加音乐到歌单
-export function addMusicToPlaylist(data) {
+export function addMusicToMusicList(data) {
   return request({
-    url: '/playlist/addMusic',
+    url: '/musiclist/addMusic',
     method: 'post',
     data
   })

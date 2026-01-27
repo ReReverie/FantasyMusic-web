@@ -21,6 +21,11 @@
           <template #default="scope">
             <el-button size="small" @click="handlePlay(scope.row)">播放</el-button>
             <el-button size="small" type="success" @click="handleDownload(scope.row)">下载</el-button>
+            <el-popconfirm title="确定要删除这首歌曲吗？" @confirm="handleDelete(scope.row)">
+              <template #reference>
+                <el-button size="small" type="danger">删除</el-button>
+              </template>
+            </el-popconfirm>
           </template>
         </el-table-column>
       </el-table>
@@ -48,7 +53,7 @@
 import { ref, onMounted } from 'vue'
 import { useUserStore } from '@/store/user'
 import { usePlayerStore } from '@/store/player'
-import { uploadMusic, getMusicList } from '@/api/music'
+import { uploadMusic, getMusicList, deleteMusic } from '@/api/music'
 import { ElMessage } from 'element-plus'
 
 const userStore = useUserStore()
@@ -111,6 +116,16 @@ const handleDownload = (row) => {
   document.body.appendChild(link)
   link.click()
   document.body.removeChild(link)
+}
+
+const handleDelete = async (row) => {
+  try {
+    await deleteMusic(row.id)
+    ElMessage.success('删除成功')
+    fetchMusicList()
+  } catch (error) {
+    ElMessage.error('删除失败')
+  }
 }
 
 const formatDuration = (ms) => {

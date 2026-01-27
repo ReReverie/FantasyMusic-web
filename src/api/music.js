@@ -34,3 +34,11 @@ export function getCategoryList() {
     method: 'get'
   })
 }
+
+// 删除音乐
+export function deleteMusic(id) {
+  return request({
+    url: `/music/${id}`,
+    method: 'delete'
+  })
+}

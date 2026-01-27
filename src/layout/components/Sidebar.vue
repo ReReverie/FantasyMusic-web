@@ -21,7 +21,7 @@
         <template #title>音乐库</template>
       </el-menu-item>
 
-      <el-menu-item index="/playlist">
+      <el-menu-item index="/musiclist">
         <el-icon><Collection /></el-icon>
         <template #title>我的歌单</template>
       </el-menu-item>
