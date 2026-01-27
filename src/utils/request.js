@@ -45,11 +45,16 @@ service.interceptors.response.use(
   },
   error => {
     console.log('err' + error) // for debug
-    ElMessage({
-      message: error.message,
-      type: 'error',
-      duration: 5 * 1000
-    })
+    // 检查是否是网络错误
+    if (error.message === 'Network Error') {
+      ElMessage.error('无法连接到服务器，请检查后端服务是否启动，或者代理配置是否生效')
+    } else {
+      ElMessage({
+        message: error.message,
+        type: 'error',
+        duration: 5 * 1000
+      })
+    }
     return Promise.reject(error)
   }
 )

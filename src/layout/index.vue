@@ -1,26 +1,28 @@
 <template>
   <div class="app-wrapper">
-    <!-- Top Header -->
     <div class="top-header">
       <Header />
     </div>
-    
-    <!-- Main Body -->
     <div class="main-body">
       <div class="sidebar-container">
         <Sidebar />
       </div>
       <div class="main-container">
-        <AppMain />
+        <el-scrollbar>
+          <AppMain />
+        </el-scrollbar>
       </div>
     </div>
+    <!-- 全局播放器 -->
+    <FooterPlayer />
   </div>
 </template>
 
 <script setup>
-import Sidebar from './components/Sidebar.vue'
 import Header from './components/Header.vue'
+import Sidebar from './components/Sidebar.vue'
 import AppMain from './components/AppMain.vue'
+import FooterPlayer from './components/FooterPlayer.vue'
 </script>
 
 <style scoped>
@@ -29,41 +31,43 @@ import AppMain from './components/AppMain.vue'
   flex-direction: column;
   height: 100vh;
   width: 100%;
+  overflow: hidden;
 }
 
 .top-header {
-  height: 50px;
-  width: 100%;
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 1002;
+  height: 60px;
+  flex-shrink: 0;
+  z-index: 1001;
+  box-shadow: 0 1px 4px rgba(0,21,41,.08);
 }
 
 .main-body {
   display: flex;
-  margin-top: 50px; /* Height of header */
-  height: calc(100vh - 50px);
-  width: 100%;
-}
-
-.sidebar-container {
-  width: 210px;
-  background-color: #304156;
-  height: 100%;
-  position: fixed;
-  top: 50px; /* Below header */
-  bottom: 0;
-  left: 0;
-  z-index: 1001;
+  flex: 1;
   overflow: hidden;
 }
 
-.main-container {
+.sidebar-container {
+  width: 200px;
+  background-color: #304156;
+  flex-shrink: 0;
   height: 100%;
-  transition: margin-left .28s;
-  margin-left: 210px;
-  position: relative;
-  width: calc(100% - 210px);
+}
+
+.main-container {
+  flex: 1;
+  background-color: #f0f2f5;
+  height: 100%;
+  /* 为底部播放器留出空间，防止内容被遮挡 */
+  padding-bottom: 80px; 
+  box-sizing: border-box;
+}
+
+/* 确保 el-scrollbar 占满高度 */
+.main-container :deep(.el-scrollbar) {
+  height: 100%;
+}
+.main-container :deep(.el-scrollbar__view) {
+  min-height: 100%;
 }
 </style>
