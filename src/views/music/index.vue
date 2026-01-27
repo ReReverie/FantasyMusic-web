@@ -102,7 +102,15 @@ const handlePlay = (row) => {
 const handleDownload = (row) => {
   // 假设后端下载接口为 /music/download/{id}
   const url = `/api/music/download/${row.id}`
-  window.open(url, '_blank')
+  
+  // 创建一个临时的 a 标签来触发下载，避免打开新窗口
+  const link = document.createElement('a')
+  link.href = url
+  link.style.display = 'none'
+  link.setAttribute('download', '') // 提示浏览器这是下载行为
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
 }
 
 const formatDuration = (ms) => {
