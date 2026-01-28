@@ -34,3 +34,12 @@ export function addMusicToMusicList(data) {
     data
   })
 }
+
+// 从歌单移除音乐
+export function removeMusicFromMusicList(data) {
+  return request({
+    url: '/musiclist/removeMusic',
+    method: 'post',
+    data
+  })
+}

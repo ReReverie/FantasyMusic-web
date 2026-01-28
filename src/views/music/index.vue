@@ -21,6 +21,7 @@
           <template #default="scope">
             <el-button size="small" @click="handlePlay(scope.row)">播放</el-button>
             <el-button size="small" type="success" @click="handleDownload(scope.row)">下载</el-button>
+            <el-button size="small" type="warning" @click="handleOpenCollect(scope.row)">收藏</el-button>
             <el-popconfirm title="确定要删除这首歌曲吗？" @confirm="handleDelete(scope.row)">
               <template #reference>
                 <el-button size="small" type="danger">删除</el-button>
@@ -46,6 +47,24 @@
       </el-upload>
     </el-dialog>
 
+    <!-- 收藏到歌单弹窗 -->
+    <el-dialog v-model="collectDialogVisible" title="添加到歌单" width="30%">
+      <div v-if="myMusicLists.length === 0">暂无歌单，请先去创建歌单</div>
+      <el-scrollbar max-height="300px" v-else>
+        <div 
+          v-for="list in myMusicLists" 
+          :key="list.id" 
+          class="music-list-item"
+          @click="handleAddToMusicList(list.id)"
+        >
+          <div class="list-info">
+            <span class="list-title">{{ list.title }}</span>
+            <span class="list-count">{{ list.musics ? list.musics.length : 0 }}首</span>
+          </div>
+        </div>
+      </el-scrollbar>
+    </el-dialog>
+
   </div>
 </template>
 
@@ -54,6 +73,7 @@ import { ref, onMounted } from 'vue'
 import { useUserStore } from '@/store/user'
 import { usePlayerStore } from '@/store/player'
 import { uploadMusic, getMusicList, deleteMusic } from '@/api/music'
+import { getMusicLists, addMusicToMusicList } from '@/api/musiclist'
 import { ElMessage } from 'element-plus'
 
 const userStore = useUserStore()
@@ -61,6 +81,35 @@ const playerStore = usePlayerStore()
 const loading = ref(false)
 const musicList = ref([])
 const uploadVisible = ref(false)
+
+// 收藏相关
+const collectDialogVisible = ref(false)
+const myMusicLists = ref([])
+const currentMusicId = ref(null)
+
+const handleOpenCollect = async (row) => {
+  currentMusicId.value = row.id
+  try {
+    const res = await getMusicLists()
+    myMusicLists.value = res || []
+    collectDialogVisible.value = true
+  } catch (error) {
+    ElMessage.error('获取歌单列表失败')
+  }
+}
+
+const handleAddToMusicList = async (musicListId) => {
+  try {
+    await addMusicToMusicList({
+      musicListId,
+      musicId: currentMusicId.value
+    })
+    ElMessage.success('收藏成功')
+    collectDialogVisible.value = false
+  } catch (error) {
+    ElMessage.error('收藏失败')
+  }
+}
 
 const handleCustomUpload = async (options) => {
   const { file, onSuccess, onError } = options
@@ -146,5 +195,32 @@ const formatDuration = (ms) => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.music-list-item {
+  padding: 10px;
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.music-list-item:hover {
+  background-color: #f5f7fa;
+}
+
+.list-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.list-title {
+  font-size: 14px;
+  color: #333;
+}
+
+.list-count {
+  font-size: 12px;
+  color: #999;
 }
 </style>

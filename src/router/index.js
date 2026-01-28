@@ -41,6 +41,12 @@ const routes = [
         name: 'MusicList',
         component: () => import('@/views/musiclist/index.vue'),
         meta: { title: '我的歌单', icon: 'Collection' }
+      },
+      {
+        path: ':id',
+        name: 'MusicListDetail',
+        component: () => import('@/views/musiclist/detail.vue'),
+        meta: { title: '歌单详情', icon: 'Collection', hidden: true }
       }
     ]
   },

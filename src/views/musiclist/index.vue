@@ -46,6 +46,9 @@ import { ref, onMounted, reactive } from 'vue'
 import { getMusicLists, createMusicList } from '@/api/musiclist'
 import { ElMessage } from 'element-plus'
 
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 const loading = ref(false)
 const musicLists = ref([])
 const dialogVisible = ref(false)
@@ -88,8 +91,7 @@ const confirmCreate = async () => {
 }
 
 const handleDetail = (row) => {
-  // TODO: 跳转到详情页
-  console.log('查看详情', row)
+  router.push(`/musiclist/${row.id}`)
 }
 
 onMounted(() => {
