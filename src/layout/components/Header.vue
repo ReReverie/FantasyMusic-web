@@ -41,7 +41,8 @@ const userStore = useUserStore()
 
 const logout = async () => {
   await userStore.logout()
-  router.push(`/login?redirect=${route.fullPath}`)
+  sessionStorage.setItem('redirect_path', route.fullPath)
+  router.push(`/login`)
   ElMessage.success('退出登录成功')
 }
 </script>

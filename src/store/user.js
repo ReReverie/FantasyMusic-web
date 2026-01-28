@@ -4,8 +4,12 @@ import { login, logout, getUserInfo } from '@/api/user'
 export const useUserStore = defineStore('user', {
   state: () => ({
     token: localStorage.getItem('token') || '',
-    name: '',
+    id: '',
+    username: '',
+    nickname: '',
+    email: '',
     avatar: '',
+    userLevelValue: 0,
     roles: []
   }),
   actions: {
@@ -13,12 +17,13 @@ export const useUserStore = defineStore('user', {
       const { username, password } = userInfo
       return new Promise((resolve, reject) => {
         login({ username: username.trim(), password: password }).then(response => {
-          // 假设后端返回的数据结构中包含 token
+          // data = { id, nickname, token }
           const data = response
-          // 这里假设返回的就是 token 字符串，或者 data.token
-          // 根据 unified response { code: 1, msg: "success", data: ... }
-          // request.js 已经解包了 data
           this.token = data.token
+          this.id = data.id
+          this.nickname = data.nickname
+          this.username = username.trim() // store the username used for login
+          
           localStorage.setItem('token', data.token)
           resolve()
         }).catch(error => {
@@ -33,9 +38,13 @@ export const useUserStore = defineStore('user', {
           if (!data) {
             reject('Verification failed, please Login again.')
           }
-          const { name, avatar } = data
-          this.name = name
-          this.avatar = avatar
+          const { id, username, nickname, email, avatarUrl, userLevelValue } = data
+          this.id = id
+          this.username = username
+          this.nickname = nickname
+          this.email = email
+          this.avatar = avatarUrl
+          this.userLevelValue = userLevelValue
           resolve(data)
         }).catch(error => {
           reject(error)
@@ -44,14 +53,25 @@ export const useUserStore = defineStore('user', {
     },
     logout() {
       return new Promise((resolve, reject) => {
-        logout().then(() => {
+        // 定义清除本地状态的函数
+        const clearLocalState = () => {
           this.token = ''
-          this.name = ''
+          this.id = ''
+          this.username = ''
+          this.nickname = ''
+          this.email = ''
           this.avatar = ''
+          this.userLevelValue = 0
           localStorage.removeItem('token')
+        }
+
+        logout().then(() => {
+          clearLocalState()
           resolve()
         }).catch(error => {
-          reject(error)
+          // 即使后端接口报错（如Token过期），前端也应该强制清除本地状态
+          clearLocalState()
+          resolve() // resolve 允许前端继续跳转到登录页
         })
       })
     }

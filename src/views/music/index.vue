@@ -72,7 +72,7 @@
 import { ref, onMounted } from 'vue'
 import { useUserStore } from '@/store/user'
 import { usePlayerStore } from '@/store/player'
-import { uploadMusic, getMusicList, deleteMusic } from '@/api/music'
+import { uploadMusic, getMusicList, deleteMusic, downloadMusic } from '@/api/music'
 import { getMusicLists, addMusicToMusicList } from '@/api/musiclist'
 import { ElMessage } from 'element-plus'
 
@@ -153,18 +153,42 @@ const handlePlay = (row) => {
   playerStore.playMusic(row)
 }
 
-const handleDownload = (row) => {
-  // 假设后端下载接口为 /music/download/{id}
-  const url = `/api/music/download/${row.id}`
-  
-  // 创建一个临时的 a 标签来触发下载，避免打开新窗口
-  const link = document.createElement('a')
-  link.href = url
-  link.style.display = 'none'
-  link.setAttribute('download', '') // 提示浏览器这是下载行为
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
+const handleDownload = async (row) => {
+  try {
+    const response = await downloadMusic(row.id)
+    // res is a response object because we changed request.js
+    if (!response || !response.data) return
+    
+    // 尝试从 header 中获取文件名
+    let fileName = `${row.title}.mp3`
+    const contentDisposition = response.headers['content-disposition']
+    if (contentDisposition) {
+      // 优先匹配 filename*=UTF-8''
+      let match = contentDisposition.match(/filename\*=UTF-8''(.+)/i)
+      if (match && match[1]) {
+        fileName = decodeURIComponent(match[1])
+      } else {
+        // 其次匹配 filename=
+        match = contentDisposition.match(/filename="?([^";]+)"?/i)
+        if (match && match[1]) {
+          fileName = decodeURIComponent(match[1])
+        }
+      }
+    }
+
+    const url = window.URL.createObjectURL(new Blob([response.data]))
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', fileName)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+    ElMessage.success('开始下载')
+  } catch (error) {
+    console.error(error)
+    ElMessage.error('下载失败')
+  }
 }
 
 const handleDelete = async (row) => {

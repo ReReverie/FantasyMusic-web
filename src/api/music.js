@@ -42,3 +42,12 @@ export function deleteMusic(id) {
     method: 'delete'
   })
 }
+
+// 下载音乐
+export function downloadMusic(id) {
+  return request({
+    url: `/music/download/${id}`,
+    method: 'get',
+    responseType: 'blob'
+  })
+}

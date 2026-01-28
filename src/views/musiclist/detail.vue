@@ -69,6 +69,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getMusicListDetail, removeMusicFromMusicList } from '@/api/musiclist'
+import { downloadMusic } from '@/api/music'
 import { usePlayerStore } from '@/store/player'
 import { ElMessage } from 'element-plus'
 import { ArrowLeft, Picture, VideoPlay } from '@element-plus/icons-vue'
@@ -112,15 +113,41 @@ const handlePlayAll = () => {
   }
 }
 
-const handleDownload = (row) => {
-  const url = `/api/music/download/${row.id}`
-  const link = document.createElement('a')
-  link.href = url
-  link.style.display = 'none'
-  link.setAttribute('download', '')
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
+const handleDownload = async (row) => {
+  try {
+    const response = await downloadMusic(row.id)
+    if (!response || !response.data) return
+
+    // 尝试从 header 中获取文件名
+    let fileName = `${row.title}.mp3`
+    const contentDisposition = response.headers['content-disposition']
+    if (contentDisposition) {
+      // 优先匹配 filename*=UTF-8''
+      let match = contentDisposition.match(/filename\*=UTF-8''(.+)/i)
+      if (match && match[1]) {
+        fileName = decodeURIComponent(match[1])
+      } else {
+        // 其次匹配 filename=
+        match = contentDisposition.match(/filename="?([^";]+)"?/i)
+        if (match && match[1]) {
+          fileName = decodeURIComponent(match[1])
+        }
+      }
+    }
+
+    const url = window.URL.createObjectURL(new Blob([response.data]))
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', fileName)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+    ElMessage.success('开始下载')
+  } catch (error) {
+    console.error(error)
+    ElMessage.error('下载失败')
+  }
 }
 
 const handleRemove = async (row) => {

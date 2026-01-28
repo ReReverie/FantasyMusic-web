@@ -97,7 +97,15 @@ const handleLogin = () => {
       loading.value = true
       userStore.login(loginForm).then(() => {
         ElMessage.success('登录成功')
-        router.push('/')
+        // Check for redirect path in session storage
+        const redirectPath = sessionStorage.getItem('redirect_path')
+        // Validate redirectPath: must start with '/' and not contain http/https (to prevent open redirect vulnerabilities or weird browser plugin injections)
+        if (redirectPath && redirectPath.startsWith('/') && !redirectPath.startsWith('//') && !redirectPath.includes('http') && !redirectPath.includes('hybridaction')) {
+          router.push(redirectPath)
+          sessionStorage.removeItem('redirect_path')
+        } else {
+          router.push('/')
+        }
         loading.value = false
       }).catch(() => {
         loading.value = false

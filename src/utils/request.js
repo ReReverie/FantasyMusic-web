@@ -14,7 +14,7 @@ service.interceptors.request.use(
     // 例如，如果有 token，可以加入 headers
     const token = localStorage.getItem('token')
     if (token) {
-      config.headers['Authorization'] = token
+      config.headers['Authentication'] = token
     }
     return config
   },
@@ -28,6 +28,11 @@ service.interceptors.request.use(
 // 响应拦截器
 service.interceptors.response.use(
   response => {
+    // 如果是 Blob 类型，返回整个 response 对象，以便获取 headers (如文件名)
+    if (response.config.responseType === 'blob' || response.data instanceof Blob) {
+      return response
+    }
+
     const res = response.data
     
     // 根据后端约定的状态码判断
