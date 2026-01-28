@@ -39,7 +39,15 @@ export function addMusicToMusicList(data) {
 export function removeMusicFromMusicList(data) {
   return request({
     url: '/musiclist/removeMusic',
-    method: 'post',
+    method: 'delete',
     data
+  })
+}
+
+// 删除歌单
+export function deleteMusicList(id) {
+  return request({
+    url: `/musiclist/${id}`,
+    method: 'delete'
   })
 }

@@ -15,7 +15,11 @@
         <el-table-column label="操作" width="200">
           <template #default="scope">
             <el-button size="small" @click="handleDetail(scope.row)">查看</el-button>
-            <el-button size="small" type="danger">删除</el-button>
+            <el-popconfirm title="确定要删除这个歌单吗？" @confirm="handleDelete(scope.row)">
+              <template #reference>
+                <el-button size="small" type="danger">删除</el-button>
+              </template>
+            </el-popconfirm>
           </template>
         </el-table-column>
       </el-table>
@@ -43,7 +47,7 @@
 
 <script setup>
 import { ref, onMounted, reactive } from 'vue'
-import { getMusicLists, createMusicList } from '@/api/musiclist'
+import { getMusicLists, createMusicList, deleteMusicList } from '@/api/musiclist'
 import { ElMessage } from 'element-plus'
 
 import { useRouter } from 'vue-router'
@@ -92,6 +96,16 @@ const confirmCreate = async () => {
 
 const handleDetail = (row) => {
   router.push(`/musiclist/${row.id}`)
+}
+
+const handleDelete = async (row) => {
+  try {
+    await deleteMusicList(row.id)
+    ElMessage.success('删除成功')
+    fetchMusicLists()
+  } catch (error) {
+    ElMessage.error('删除失败')
+  }
 }
 
 onMounted(() => {
