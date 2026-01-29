@@ -9,16 +9,13 @@
     <div class="right-menu">
       <el-dropdown class="avatar-container" trigger="click">
         <div class="avatar-wrapper">
-          <span class="user-name">{{ userStore.name || '用户' }}</span>
+          <span class="user-name">{{ userStore.nickname || userStore.username || '用户' }}</span>
           <el-icon class="el-icon--right"><arrow-down /></el-icon>
         </div>
         <template #dropdown>
           <el-dropdown-menu class="user-dropdown">
-            <router-link to="/">
-              <el-dropdown-item>首页</el-dropdown-item>
-            </router-link>
-            <router-link to="/account">
-              <el-dropdown-item>个人中心</el-dropdown-item>
+            <router-link to="/password">
+              <el-dropdown-item>修改密码</el-dropdown-item>
             </router-link>
             <el-dropdown-item divided @click="logout">
               <span style="display:block;">退出登录</span>

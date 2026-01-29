@@ -37,3 +37,11 @@ export function updateUser(data) {
     data
   })
 }
+
+export function updatePassword(data) {
+  return request({
+    url: '/user/password',
+    method: 'put',
+    data
+  })
+}

@@ -61,6 +61,18 @@ const routes = [
         meta: { title: '个人中心', icon: 'User' }
       }
     ]
+  },
+  {
+    path: '/password',
+    component: Layout,
+    children: [
+      {
+        path: '',
+        name: 'ChangePassword',
+        component: () => import('@/views/password/index.vue'),
+        meta: { title: '修改密码', icon: 'Lock' }
+      }
+    ]
   }
 ]
 

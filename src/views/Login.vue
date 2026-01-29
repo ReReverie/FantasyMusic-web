@@ -86,8 +86,16 @@ const validatePass2 = (rule, value, callback) => {
 }
 
 const registerRules = {
-  username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
-  password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
+  username: [
+    { required: true, message: '请输入用户名', trigger: 'blur' },
+    { min: 3, message: '用户名不少于3个字符', trigger: 'blur' },
+    { pattern: /^(?!\d+$).+$/, message: '用户名不能是纯数字', trigger: 'blur' }
+  ],
+  password: [
+    { required: true, message: '请输入密码', trigger: 'blur' },
+    { min: 8, max: 24, message: '密码长度在8到24位之间', trigger: 'blur' },
+    { pattern: /(?=.*[a-z])(?=.*[A-Z])/, message: '密码必须包含大小写字母', trigger: 'blur' }
+  ],
   confirmPassword: [{ validator: validatePass2, trigger: 'blur' }]
 }
 
