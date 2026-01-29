@@ -58,8 +58,6 @@ import FooterPlayer from './components/FooterPlayer.vue'
   flex: 1;
   background-color: #f0f2f5;
   height: 100%;
-  /* 为底部播放器留出空间，防止内容被遮挡 */
-  padding-bottom: 80px; 
   box-sizing: border-box;
 }
 

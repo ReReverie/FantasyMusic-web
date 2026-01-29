@@ -9,7 +9,7 @@ export const useUserStore = defineStore('user', {
     nickname: '',
     email: '',
     avatar: '',
-    userLevelValue: 0,
+    userLevelValue: '',
     roles: []
   }),
   actions: {
@@ -61,7 +61,7 @@ export const useUserStore = defineStore('user', {
           this.nickname = ''
           this.email = ''
           this.avatar = ''
-          this.userLevelValue = 0
+          this.userLevelValue = ''
           localStorage.removeItem('token')
         }
 

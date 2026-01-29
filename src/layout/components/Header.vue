@@ -46,11 +46,10 @@ const logout = async () => {
 
 <style scoped>
 .navbar {
-  height: 50px;
+  height: 100%;
   overflow: hidden;
   position: relative;
   background: #2b2f3a; /* Dark background */
-  box-shadow: 0 1px 4px rgba(0,21,41,.08);
   display: flex;
   justify-content: space-between;
   align-items: center;

@@ -1,112 +1,138 @@
 <template>
   <div class="home-container">
+    <!-- 背景装饰 -->
+    <div class="background-blobs">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+      <div class="blob blob-3"></div>
+    </div>
+
+    <!-- 欢迎标语 -->
+    <div class="welcome-header">
+      <h1 class="gradient-text">探索你的音乐宇宙</h1>
+      <p class="subtitle">沉浸在无尽的旋律中</p>
+    </div>
+
     <!-- 轮播图区域 -->
     <div class="banner-section">
-      <el-carousel :interval="4000" type="card" height="200px">
-        <el-carousel-item v-for="item in banners" :key="item">
+      <el-carousel :interval="5000" type="card" height="220px" indicator-position="none">
+        <el-carousel-item v-for="item in banners" :key="item.title">
           <div class="banner-item" :style="{ backgroundImage: `url(${item.url})` }">
-            <h3 class="banner-title">{{ item.title }}</h3>
+            <div class="banner-content">
+              <span class="banner-tag">精选</span>
+              <h3 class="banner-title">{{ item.title }}</h3>
+            </div>
           </div>
         </el-carousel-item>
       </el-carousel>
     </div>
 
     <!-- 统计卡片区域 -->
-    <el-row :gutter="20" class="stats-row">
-      <el-col :span="6">
-        <div class="stat-card blue-gradient">
-          <div class="stat-icon"><el-icon><Headset /></el-icon></div>
-          <div class="stat-info">
-            <div class="stat-value">{{ musicCount }}</div>
-            <div class="stat-label">歌曲总数</div>
-          </div>
+    <div class="stats-grid">
+      <div class="stat-card glass-panel from-blue">
+        <div class="stat-icon-wrapper">
+          <el-icon><Headset /></el-icon>
         </div>
-      </el-col>
-      <el-col :span="6">
-        <div class="stat-card purple-gradient">
-          <div class="stat-icon"><el-icon><Collection /></el-icon></div>
-          <div class="stat-info">
-            <div class="stat-value">{{ playlistCount }}</div>
-            <div class="stat-label">我的歌单</div>
-          </div>
+        <div class="stat-info">
+          <div class="stat-value">{{ musicCount }}</div>
+          <div class="stat-label">歌曲总数</div>
         </div>
-      </el-col>
-      <el-col :span="6">
-        <div class="stat-card orange-gradient">
-          <div class="stat-icon"><el-icon><Star /></el-icon></div>
-          <div class="stat-info">
-            <div class="stat-value">--</div>
-            <div class="stat-label">收藏歌曲</div>
-          </div>
+      </div>
+      <div class="stat-card glass-panel from-purple">
+        <div class="stat-icon-wrapper">
+          <el-icon><Collection /></el-icon>
         </div>
-      </el-col>
-      <el-col :span="6">
-        <div class="stat-card green-gradient">
-          <div class="stat-icon"><el-icon><User /></el-icon></div>
-          <div class="stat-info">
-            <div class="stat-value">{{ userStore.userLevelValue || 0 }}</div>
-            <div class="stat-label">用户等级</div>
-          </div>
+        <div class="stat-info">
+          <div class="stat-value">{{ playlistCount }}</div>
+          <div class="stat-label">我的歌单</div>
         </div>
-      </el-col>
-    </el-row>
+      </div>
+      <div class="stat-card glass-panel from-pink">
+        <div class="stat-icon-wrapper">
+          <el-icon><Star /></el-icon>
+        </div>
+        <div class="stat-info">
+          <div class="stat-value">--</div>
+          <div class="stat-label">收藏歌曲</div>
+        </div>
+      </div>
+      <div class="stat-card glass-panel from-green">
+        <div class="stat-icon-wrapper">
+          <el-icon><User /></el-icon>
+        </div>
+        <div class="stat-info">
+          <div class="stat-value">{{ userStore.userLevelValue || '普通用户' }}</div>
+          <div class="stat-label">尊贵身份</div>
+        </div>
+      </div>
+    </div>
 
-    <!-- 推荐内容区域 -->
-    <div class="content-section">
-      <el-row :gutter="20">
-        <!-- 左侧：推荐歌单 -->
-        <el-col :span="16">
-          <el-card class="box-card" shadow="never">
-            <template #header>
-              <div class="card-header">
-                <span><el-icon><CollectionTag /></el-icon> 推荐歌单</span>
-                <el-button link type="primary" @click="$router.push('/musiclist')">更多</el-button>
-              </div>
-            </template>
-            <div class="playlist-grid" v-if="playlists.length > 0">
-              <div class="playlist-item" v-for="list in playlists" :key="list.id" @click="$router.push(`/musiclist/${list.id}`)">
-                <div class="playlist-cover">
-                  <el-image :src="list.cover || 'https://picsum.photos/200/200?random=' + list.id" fit="cover">
-                    <template #error>
-                      <div class="image-slot">
-                        <el-icon><Picture /></el-icon>
-                      </div>
-                    </template>
-                  </el-image>
-                  <div class="play-overlay"><el-icon><VideoPlay /></el-icon></div>
-                </div>
-                <div class="playlist-name">{{ list.title }}</div>
-              </div>
-            </div>
-            <el-empty v-else description="暂无歌单" />
-          </el-card>
-        </el-col>
+    <!-- 主要内容区域 -->
+    <div class="main-content-grid">
+      <!-- 左侧：推荐歌单 -->
+      <section class="section-block glass-panel">
+        <div class="section-header">
+          <div class="header-left">
+            <el-icon class="header-icon"><CollectionTag /></el-icon>
+            <h2>推荐歌单</h2>
+          </div>
+          <button class="text-btn" @click="$router.push('/musiclist')">查看全部 <el-icon><ArrowRight /></el-icon></button>
+        </div>
         
-        <!-- 右侧：最新音乐 -->
-        <el-col :span="8">
-          <el-card class="box-card" shadow="never">
-            <template #header>
-              <div class="card-header">
-                <span><el-icon><Headset /></el-icon> 最新添加</span>
-                <el-button link type="primary" @click="$router.push('/music')">去音乐库</el-button>
-              </div>
-            </template>
-            <div class="song-list" v-if="latestMusic.length > 0">
-              <div class="song-item" v-for="(song, index) in latestMusic" :key="song.id">
-                <span class="song-index" :class="{ 'top-three': index < 3 }">{{ index + 1 }}</span>
-                <div class="song-info">
-                  <div class="song-title">{{ song.title }}</div>
-                  <div class="song-artist">{{ song.artist }}</div>
-                </div>
-                <el-button circle size="small" type="primary" plain @click="playMusic(song)">
-                  <el-icon><VideoPlay /></el-icon>
-                </el-button>
+        <div class="playlist-grid" v-if="playlists.length > 0">
+          <div class="playlist-card" v-for="list in playlists" :key="list.id" @click="$router.push(`/musiclist/${list.id}`)">
+            <div class="image-wrapper">
+              <el-image :src="list.cover || 'https://picsum.photos/300/300?random=' + list.id" fit="cover" loading="lazy">
+                <template #error>
+                  <div class="image-placeholder">
+                    <el-icon><Picture /></el-icon>
+                  </div>
+                </template>
+              </el-image>
+              <div class="hover-play">
+                <el-icon><VideoPlay /></el-icon>
               </div>
             </div>
-            <el-empty v-else description="暂无音乐" />
-          </el-card>
-        </el-col>
-      </el-row>
+            <div class="playlist-info">
+              <div class="playlist-title">{{ list.title }}</div>
+              <div class="playlist-meta">{{ list.trackCount || 0 }} 首歌曲</div>
+            </div>
+          </div>
+        </div>
+        <el-empty v-else description="暂无推荐歌单" :image-size="100" />
+      </section>
+      
+      <!-- 右侧：最新音乐 -->
+      <section class="section-block glass-panel">
+        <div class="section-header">
+          <div class="header-left">
+            <el-icon class="header-icon"><Headset /></el-icon>
+            <h2>最新上架</h2>
+          </div>
+          <button class="text-btn" @click="$router.push('/music')">音乐库 <el-icon><ArrowRight /></el-icon></button>
+        </div>
+
+        <div class="song-list-container" v-if="latestMusic.length > 0">
+          <div class="song-row" v-for="(song, index) in latestMusic" :key="song.id" @click="playMusic(song)">
+            <div class="song-left">
+              <span class="rank-num" :class="{ 'top-3': index < 3 }">{{ String(index + 1).padStart(2, '0') }}</span>
+              <div class="song-cover-mini">
+                 <el-icon><Headset /></el-icon>
+              </div>
+              <div class="song-details">
+                <div class="song-name">{{ song.title }}</div>
+                <div class="song-author">{{ song.artist }}</div>
+              </div>
+            </div>
+            <div class="song-right">
+              <button class="play-btn-mini">
+                <el-icon><CaretRight /></el-icon>
+              </button>
+            </div>
+          </div>
+        </div>
+        <el-empty v-else description="暂无新歌" :image-size="80" />
+      </section>
     </div>
   </div>
 </template>
@@ -148,181 +174,476 @@ const playMusic = (song) => {
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
+/* 变量定义 */
+$glass-bg: rgba(255, 255, 255, 0.7);
+$glass-border: rgba(255, 255, 255, 0.5);
+$shadow-soft: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+$primary-color: #667eea;
+
 .home-container {
-  padding: 20px;
-}
-
-/* Banner */
-.banner-section {
-  margin-bottom: 30px;
-}
-.banner-item {
-  height: 100%;
-  background-size: cover;
-  background-position: center;
-  border-radius: 8px;
-  display: flex;
-  align-items: flex-end;
-  padding: 20px;
+  padding: 24px 40px;
+  min-height: 100%;
   position: relative;
+  overflow: hidden;
+  font-family: 'PingFang SC', 'Helvetica Neue', Helvetica, 'Hiragino Sans GB', 'Microsoft YaHei', Arial, sans-serif;
 }
-.banner-item::before {
-  content: '';
+
+/* 动态背景球 */
+.background-blobs {
   position: absolute;
-  bottom: 0;
+  top: 0;
   left: 0;
-  right: 0;
-  height: 50%;
-  background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
-  border-radius: 0 0 8px 8px;
-}
-.banner-title {
-  color: #fff;
-  z-index: 1;
-  margin: 0;
-  font-size: 24px;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-}
-
-/* Stats Cards */
-.stats-row {
-  margin-bottom: 30px;
-}
-.stat-card {
-  display: flex;
-  align-items: center;
-  padding: 20px;
-  border-radius: 8px;
-  color: white;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  transition: transform 0.3s;
-}
-.stat-card:hover {
-  transform: translateY(-5px);
-}
-.blue-gradient { background: linear-gradient(135deg, #36d1dc, #5b86e5); }
-.purple-gradient { background: linear-gradient(135deg, #bdc3c7, #2c3e50); /* Fallback */ background: linear-gradient(135deg, #667eea, #764ba2); }
-.orange-gradient { background: linear-gradient(135deg, #f093fb, #f5576c); }
-.green-gradient { background: linear-gradient(135deg, #84fab0, #8fd3f4); }
-
-.stat-icon {
-  font-size: 40px;
-  margin-right: 15px;
-  opacity: 0.8;
-}
-.stat-value {
-  font-size: 24px;
-  font-weight: bold;
-}
-.stat-label {
-  font-size: 14px;
-  opacity: 0.9;
-}
-
-/* Content Section */
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-weight: bold;
-}
-.box-card {
+  width: 100%;
   height: 100%;
-  border: none;
-  background: #fff;
-  border-radius: 8px;
+  z-index: 0;
+  pointer-events: none;
+  
+  .blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.6;
+    animation: float 10s infinite ease-in-out;
+  }
+  
+  .blob-1 {
+    top: -10%;
+    left: -10%;
+    width: 500px;
+    height: 500px;
+    background: #a1c4fd;
+    animation-delay: 0s;
+  }
+  
+  .blob-2 {
+    bottom: -10%;
+    right: -5%;
+    width: 400px;
+    height: 400px;
+    background: #fbc2eb;
+    animation-delay: -2s;
+  }
+  
+  .blob-3 {
+    top: 40%;
+    left: 40%;
+    width: 300px;
+    height: 300px;
+    background: #8fd3f4;
+    opacity: 0.4;
+    animation-delay: -5s;
+  }
 }
 
-/* Playlist Grid */
+@keyframes float {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(30px, 50px); }
+}
+
+/* 欢迎头 */
+.welcome-header {
+  position: relative;
+  z-index: 1;
+  margin-bottom: 30px;
+  text-align: left;
+  
+  .gradient-text {
+    font-size: 32px;
+    font-weight: 800;
+    margin: 0;
+    background: linear-gradient(135deg, #2c3e50 0%, #667eea 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
+  }
+  
+  .subtitle {
+    margin: 8px 0 0;
+    color: #606266;
+    font-size: 16px;
+    opacity: 0.8;
+  }
+}
+
+/* 轮播图优化 */
+.banner-section {
+  position: relative;
+  z-index: 1;
+  margin-bottom: 40px;
+  
+  :deep(.el-carousel__mask) {
+    background-color: #fff;
+    opacity: 0.4;
+  }
+  
+  .banner-item {
+    height: 100%;
+    border-radius: 16px;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+    transition: transform 0.3s;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 60%);
+    }
+    
+    .banner-content {
+      position: absolute;
+      bottom: 24px;
+      left: 24px;
+      z-index: 2;
+      color: #fff;
+      
+      .banner-tag {
+        display: inline-block;
+        padding: 4px 12px;
+        background: rgba(255,255,255,0.2);
+        backdrop-filter: blur(4px);
+        border-radius: 20px;
+        font-size: 12px;
+        margin-bottom: 8px;
+        border: 1px solid rgba(255,255,255,0.3);
+      }
+      
+      .banner-title {
+        font-size: 28px;
+        margin: 0;
+        font-weight: bold;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      }
+    }
+  }
+}
+
+/* 玻璃拟态面板通用 */
+.glass-panel {
+  background: $glass-bg;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid $glass-border;
+  border-radius: 20px;
+  box-shadow: $shadow-soft;
+}
+
+/* 统计卡片网格 */
+.stats-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  margin-bottom: 40px;
+  
+  .stat-card {
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: default;
+    overflow: hidden;
+    position: relative;
+    
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; width: 4px; height: 100%;
+      background: currentColor;
+      opacity: 0.5;
+    }
+    
+    &:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+    }
+    
+    &.from-blue { color: #4facfe; }
+    &.from-purple { color: #a18cd1; }
+    &.from-pink { color: #ff9a9e; }
+    &.from-green { color: #43e97b; }
+    
+    .stat-icon-wrapper {
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 28px;
+      margin-right: 16px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+    
+    .stat-info {
+      .stat-value {
+        font-size: 28px;
+        font-weight: 800;
+        line-height: 1.2;
+        color: #2c3e50;
+      }
+      .stat-label {
+        font-size: 13px;
+        color: #909399;
+        margin-top: 4px;
+      }
+    }
+  }
+}
+
+/* 主内容网格 */
+.main-content-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 2fr 1fr; /* 左2右1 */
+  gap: 24px;
+  align-items: start;
+}
+
+.section-block {
+  padding: 24px;
+  
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      
+      .header-icon {
+        font-size: 24px;
+        color: $primary-color;
+      }
+      
+      h2 {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 700;
+        color: #2c3e50;
+      }
+    }
+    
+    .text-btn {
+      background: none;
+      border: none;
+      color: #909399;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 14px;
+      transition: color 0.2s;
+      
+      &:hover {
+        color: $primary-color;
+      }
+    }
+  }
+}
+
+/* 推荐歌单网格 */
 .playlist-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 15px;
-}
-.playlist-item {
-  cursor: pointer;
-  transition: transform 0.2s;
-}
-.playlist-item:hover {
-  transform: translateY(-3px);
-}
-.playlist-cover {
-  width: 100%;
-  aspect-ratio: 1;
-  border-radius: 6px;
-  overflow: hidden;
-  position: relative;
-  margin-bottom: 8px;
-}
-.playlist-cover .el-image {
-  width: 100%;
-  height: 100%;
-}
-.play-overlay {
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.3);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  opacity: 0;
-  transition: opacity 0.3s;
-  color: #fff;
-  font-size: 32px;
-}
-.playlist-item:hover .play-overlay {
-  opacity: 1;
-}
-.playlist-name {
-  font-size: 14px;
-  color: #333;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  gap: 20px;
+  
+  .playlist-card {
+    cursor: pointer;
+    group: hover;
+    
+    .image-wrapper {
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      aspect-ratio: 1;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+      transition: all 0.3s ease;
+      
+      .el-image {
+        width: 100%;
+        height: 100%;
+        transition: transform 0.5s ease;
+      }
+      
+      .image-placeholder {
+        width: 100%;
+        height: 100%;
+        background: #f5f7fa;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: #ccc;
+        font-size: 32px;
+      }
+      
+      .hover-play {
+        position: absolute;
+        inset: 0;
+        background: rgba(0,0,0,0.3);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        opacity: 0;
+        transition: opacity 0.3s;
+        
+        .el-icon {
+          font-size: 48px;
+          color: #fff;
+          filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+          transform: scale(0.8);
+          transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+      }
+    }
+    
+    &:hover {
+      .image-wrapper {
+        box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+        transform: translateY(-4px);
+        
+        .el-image {
+          transform: scale(1.1);
+        }
+        
+        .hover-play {
+          opacity: 1;
+          .el-icon { transform: scale(1); }
+        }
+      }
+      
+      .playlist-title { color: $primary-color; }
+    }
+    
+    .playlist-info {
+      margin-top: 12px;
+      
+      .playlist-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 4px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        transition: color 0.2s;
+      }
+      
+      .playlist-meta {
+        font-size: 12px;
+        color: #909399;
+      }
+    }
+  }
 }
 
-/* Song List */
-.song-list {
+/* 最新音乐列表 */
+.song-list-container {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-}
-.song-item {
-  display: flex;
-  align-items: center;
-  padding: 8px;
-  border-radius: 4px;
-  transition: background 0.2s;
-}
-.song-item:hover {
-  background: #f5f7fa;
-}
-.song-index {
-  width: 24px;
-  text-align: center;
-  color: #999;
-  font-size: 14px;
-  margin-right: 10px;
-}
-.song-index.top-three {
-  color: #f56c6c;
-  font-weight: bold;
-}
-.song-info {
-  flex: 1;
-  overflow: hidden;
-}
-.song-title {
-  font-size: 14px;
-  color: #333;
-  margin-bottom: 2px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.song-artist {
-  font-size: 12px;
-  color: #999;
+  gap: 12px;
+  
+  .song-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 16px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.4);
+    transition: all 0.2s;
+    cursor: pointer;
+    
+    &:hover {
+      background: #fff;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      
+      .song-left .song-cover-mini {
+         background: $primary-color;
+         color: #fff;
+      }
+      
+      .play-btn-mini {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+    
+    .song-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+      overflow: hidden;
+      
+      .rank-num {
+        font-size: 16px;
+        font-weight: 700;
+        color: #c0c4cc;
+        width: 24px;
+        
+        &.top-3 { color: #ff9a9e; }
+      }
+      
+      .song-cover-mini {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        background: #eef1f6;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: #909399;
+        transition: all 0.2s;
+      }
+      
+      .song-details {
+        flex: 1;
+        overflow: hidden;
+        
+        .song-name {
+          font-size: 14px;
+          font-weight: 600;
+          color: #2c3e50;
+          margin-bottom: 2px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        
+        .song-author {
+          font-size: 12px;
+          color: #909399;
+        }
+      }
+    }
+    
+    .song-right {
+      .play-btn-mini {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: none;
+        background: $primary-color;
+        color: #fff;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        opacity: 0;
+        transform: scale(0.8);
+        transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      }
+    }
+  }
 }
 </style>

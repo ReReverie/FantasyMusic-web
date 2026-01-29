@@ -30,6 +30,18 @@
           </template>
         </el-table-column>
       </el-table>
+
+      <div class="pagination-container">
+        <el-pagination
+          v-model:current-page="currentPage"
+          v-model:page-size="pageSize"
+          :page-sizes="[20, 50, 100]"
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="total"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+        />
+      </div>
     </el-card>
 
     <el-dialog v-model="uploadVisible" title="上传音乐">
@@ -72,7 +84,7 @@
 import { ref, onMounted } from 'vue'
 import { useUserStore } from '@/store/user'
 import { usePlayerStore } from '@/store/player'
-import { uploadMusic, getMusicList, deleteMusic, downloadMusic } from '@/api/music'
+import { uploadMusic, getMusicList, getMusicPage, deleteMusic, downloadMusic } from '@/api/music'
 import { getMusicLists, addMusicToMusicList } from '@/api/musiclist'
 import { ElMessage } from 'element-plus'
 
@@ -81,6 +93,19 @@ const playerStore = usePlayerStore()
 const loading = ref(false)
 const musicList = ref([])
 const uploadVisible = ref(false)
+const currentPage = ref(1)
+const pageSize = ref(20)
+const total = ref(0)
+
+const handleSizeChange = (val) => {
+  pageSize.value = val
+  fetchMusicList()
+}
+
+const handleCurrentChange = (val) => {
+  currentPage.value = val
+  fetchMusicList()
+}
 
 // 收藏相关
 const collectDialogVisible = ref(false)
@@ -131,8 +156,27 @@ const handleCustomUpload = async (options) => {
 const fetchMusicList = async () => {
   loading.value = true
   try {
-    const res = await getMusicList()
-    musicList.value = res
+    const res = await getMusicPage({
+      pageNum: currentPage.value,
+      pageSize: pageSize.value
+    })
+    // 兼容处理：
+    // 1. MyBatis-Plus Page对象: { records: [], total: 0 }
+    // 2. 自定义 PageDTO: { list: [], total: 0 }
+    // 3. 纯数组: []
+    if (res.records) {
+      musicList.value = res.records
+      total.value = parseInt(res.total)
+    } else if (res.list) {
+      musicList.value = res.list
+      total.value = parseInt(res.total)
+    } else if (Array.isArray(res)) {
+      musicList.value = res
+      total.value = res.length
+    } else {
+      musicList.value = []
+      total.value = 0
+    }
   } catch (error) {
     console.error(error)
   } finally {
@@ -212,6 +256,11 @@ const formatDuration = (ms) => {
 
 <style scoped>
 /* 移除之前的底部 padding，因为现在由 layout 统一控制 */
+.pagination-container {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+}
 </style>
 
 <style scoped>

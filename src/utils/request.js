@@ -14,7 +14,7 @@ service.interceptors.request.use(
     // 例如，如果有 token，可以加入 headers
     const token = localStorage.getItem('token')
     if (token) {
-      config.headers['Authentication'] = token
+      config.headers['Authorization'] = token
     }
     return config
   },

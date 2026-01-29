@@ -25,7 +25,7 @@
           <el-input v-model="userInfo.email" />
         </el-form-item>
         <el-form-item label="用户等级">
-           <el-tag type="success">{{ userInfo.userLevelValue || 0 }}</el-tag>
+           <el-tag type="success">{{ userInfo.userLevelValue || '普通用户' }}</el-tag>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="handleUpdate" :loading="loading">保存更改</el-button>
@@ -50,7 +50,7 @@ const userInfo = reactive({
   nickname: '',
   email: '',
   avatarUrl: '',
-  userLevelValue: 0
+  userLevelValue: ''
 })
 
 const initData = () => {
