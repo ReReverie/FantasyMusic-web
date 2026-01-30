@@ -55,9 +55,9 @@ export function deleteMusic(id) {
 // 批量删除音乐
 export function batchDeleteMusic(ids) {
   return request({
-    url: '/music/batch',
+    url: '/music',
     method: 'delete',
-    data: ids
+    params: { ids: ids.join(',') }
   })
 }
 

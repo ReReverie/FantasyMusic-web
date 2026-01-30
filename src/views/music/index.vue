@@ -6,11 +6,11 @@
           <span>音乐库</span>
           <div class="header-actions">
             <template v-if="!isBatchMode">
-              <el-button @click="isBatchMode = true" style="margin-right: 12px;">批量删除</el-button>
-              <el-button type="primary" @click="handleUpload">上传音乐</el-button>
+              <el-button v-if="isAdmin" @click="toggleBatchMode(true)" style="margin-right: 12px;">批量删除</el-button>
+              <el-button v-if="isAdmin" type="primary" @click="handleUpload">上传音乐</el-button>
             </template>
             <template v-else>
-              <el-button @click="isBatchMode = false" style="margin-right: 12px;">取消</el-button>
+              <el-button @click="toggleBatchMode(false)" style="margin-right: 12px;">取消</el-button>
               <el-button 
                 type="danger" 
                 :disabled="multipleSelection.length === 0" 
@@ -23,7 +23,14 @@
         </div>
       </template>
       
-      <el-table :data="musicList" style="width: 100%" v-loading="loading" @selection-change="handleSelectionChange">
+      <el-table 
+        :key="isBatchMode"
+        ref="tableRef" 
+        :data="musicList" 
+        style="width: 100%" 
+        v-loading="loading" 
+        @selection-change="handleSelectionChange"
+      >
         <el-table-column v-if="isBatchMode" type="selection" width="55" />
         <el-table-column prop="title" label="歌曲标题" />
         <el-table-column prop="artist" label="歌手" />
@@ -38,7 +45,7 @@
             <el-button size="small" @click="handlePlay(scope.row)">播放</el-button>
             <el-button size="small" type="success" @click="handleDownload(scope.row)">下载</el-button>
             <el-button size="small" type="warning" @click="handleOpenCollect(scope.row)">收藏</el-button>
-            <el-popconfirm title="确定要删除这首歌曲吗？" @confirm="handleDelete(scope.row)">
+            <el-popconfirm v-if="isAdmin" title="确定要删除这首歌曲吗？" @confirm="handleDelete(scope.row)">
               <template #reference>
                 <el-button size="small" type="danger">删除</el-button>
               </template>
@@ -82,7 +89,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
 import { usePlayerStore } from '@/store/player'
@@ -98,6 +105,21 @@ const musicList = ref([])
 const multipleSelection = ref([])
 const isBatchMode = ref(false)
 const currentPage = ref(1)
+const tableRef = ref(null)
+
+const isAdmin = computed(() => {
+  return userStore.userLevelValue === '管理员用户'
+})
+
+const toggleBatchMode = (val) => {
+  isBatchMode.value = val
+  nextTick(() => {
+    if (tableRef.value) {
+      tableRef.value.doLayout()
+    }
+  })
+}
+
 const pageSize = ref(20)
 const total = ref(0)
 
@@ -125,7 +147,7 @@ const handleBatchDelete = () => {
         fetchMusicList()
         // 清空选择并退出批量模式
         multipleSelection.value = []
-        isBatchMode.value = false
+        toggleBatchMode(false)
       } catch (error) {
         console.error(error)
       }
@@ -274,6 +296,11 @@ const formatDuration = (ms) => {
 </script>
 
 <style scoped>
+.music-container {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 /* 移除之前的底部 padding，因为现在由 layout 统一控制 */
 .pagination-container {
   margin-top: 20px;

@@ -38,11 +38,14 @@ service.interceptors.response.use(
     // 根据后端约定的状态码判断
     // 假设 code === 1 为成功
     if (res.code !== 1) {
-      ElMessage({
-        message: res.msg || 'Error',
-        type: 'error',
-        duration: 5 * 1000
-      })
+      // 允许通过配置 skipErrorMessage 跳过默认的错误提示
+      if (!response.config.skipErrorMessage) {
+        ElMessage({
+          message: res.msg || 'Error',
+          type: 'error',
+          duration: 5 * 1000
+        })
+      }
       return Promise.reject(new Error(res.msg || 'Error'))
     } else {
       return res.data
@@ -50,15 +53,19 @@ service.interceptors.response.use(
   },
   error => {
     console.log('err' + error) // for debug
-    // 检查是否是网络错误
-    if (error.message === 'Network Error') {
-      ElMessage.error('无法连接到服务器，请检查后端服务是否启动，或者代理配置是否生效')
-    } else {
-      ElMessage({
-        message: error.message,
-        type: 'error',
-        duration: 5 * 1000
-      })
+    
+    // 允许通过配置 skipErrorMessage 跳过默认的错误提示
+    if (!error.config || !error.config.skipErrorMessage) {
+      // 检查是否是网络错误
+      if (error.message === 'Network Error') {
+        ElMessage.error('无法连接到服务器，请检查后端服务是否启动，或者代理配置是否生效')
+      } else {
+        ElMessage({
+          message: error.message,
+          type: 'error',
+          duration: 5 * 1000
+        })
+      }
     }
     return Promise.reject(error)
   }
