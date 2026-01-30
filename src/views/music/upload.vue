@@ -198,7 +198,7 @@ const processUpload = async (fileItem) => {
     formData.append('file', fileItem.raw)
     formData.append('hash', hash)
 
-    await uploadMusic(formData)
+    await uploadMusic(formData, { skipErrorMessage: true })
     fileItem.status = 'success'
     fileItem.errorMsg = ''
   } catch (error) {

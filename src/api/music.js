@@ -19,11 +19,12 @@ export function getMusicPage(params) {
 }
 
 // 上传音乐
-export function uploadMusic(data) {
+export function uploadMusic(data, config = {}) {
   return request({
     url: '/music/upload',
     method: 'post',
-    data
+    data,
+    ...config
     // headers: { 'Content-Type': 'multipart/form-data' } // Let axios set it automatically with boundary
   })
 }
