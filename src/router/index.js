@@ -29,6 +29,12 @@ const routes = [
         name: 'Music',
         component: () => import('@/views/music/index.vue'),
         meta: { title: '音乐库', icon: 'Headset' }
+      },
+      {
+        path: 'upload',
+        name: 'MusicUpload',
+        component: () => import('@/views/music/upload.vue'),
+        meta: { title: '上传音乐', hidden: true }
       }
     ]
   },

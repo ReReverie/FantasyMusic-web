@@ -4,11 +4,27 @@
       <template #header>
         <div class="card-header">
           <span>音乐库</span>
-          <el-button type="primary" @click="handleUpload">上传音乐</el-button>
+          <div class="header-actions">
+            <template v-if="!isBatchMode">
+              <el-button @click="isBatchMode = true" style="margin-right: 12px;">批量删除</el-button>
+              <el-button type="primary" @click="handleUpload">上传音乐</el-button>
+            </template>
+            <template v-else>
+              <el-button @click="isBatchMode = false" style="margin-right: 12px;">取消</el-button>
+              <el-button 
+                type="danger" 
+                :disabled="multipleSelection.length === 0" 
+                @click="handleBatchDelete"
+              >
+                确认删除
+              </el-button>
+            </template>
+          </div>
         </div>
       </template>
       
-      <el-table :data="musicList" style="width: 100%" v-loading="loading">
+      <el-table :data="musicList" style="width: 100%" v-loading="loading" @selection-change="handleSelectionChange">
+        <el-table-column v-if="isBatchMode" type="selection" width="55" />
         <el-table-column prop="title" label="歌曲标题" />
         <el-table-column prop="artist" label="歌手" />
         <el-table-column prop="album" label="专辑" />
@@ -44,21 +60,6 @@
       </div>
     </el-card>
 
-    <el-dialog v-model="uploadVisible" title="上传音乐">
-      <el-upload
-        class="upload-demo"
-        drag
-        action="#" 
-        :http-request="handleCustomUpload"
-        multiple
-      >
-        <el-icon class="el-icon--upload"><upload-filled /></el-icon>
-        <div class="el-upload__text">
-          将文件拖到此处，或<em>点击上传</em>
-        </div>
-      </el-upload>
-    </el-dialog>
-
     <!-- 收藏到歌单弹窗 -->
     <el-dialog v-model="collectDialogVisible" title="添加到歌单" width="30%">
       <div v-if="myMusicLists.length === 0">暂无歌单，请先去创建歌单</div>
@@ -82,20 +83,55 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
 import { usePlayerStore } from '@/store/player'
-import { uploadMusic, getMusicList, getMusicPage, deleteMusic, downloadMusic } from '@/api/music'
+import { getMusicPage, deleteMusic, batchDeleteMusic, downloadMusic } from '@/api/music'
 import { getMusicLists, addMusicToMusicList } from '@/api/musiclist'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 
+const router = useRouter()
 const userStore = useUserStore()
 const playerStore = usePlayerStore()
 const loading = ref(false)
 const musicList = ref([])
-const uploadVisible = ref(false)
+const multipleSelection = ref([])
+const isBatchMode = ref(false)
 const currentPage = ref(1)
 const pageSize = ref(20)
 const total = ref(0)
+
+const handleSelectionChange = (val) => {
+  multipleSelection.value = val
+}
+
+const handleBatchDelete = () => {
+  if (multipleSelection.value.length === 0) return
+  
+  ElMessageBox.confirm(
+    `确定要删除选中的 ${multipleSelection.value.length} 首歌曲吗？`,
+    '提示',
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    }
+  )
+    .then(async () => {
+      try {
+        const ids = multipleSelection.value.map(item => item.id)
+        await batchDeleteMusic(ids)
+        ElMessage.success('批量删除成功')
+        fetchMusicList()
+        // 清空选择并退出批量模式
+        multipleSelection.value = []
+        isBatchMode.value = false
+      } catch (error) {
+        console.error(error)
+      }
+    })
+    .catch(() => {})
+}
 
 const handleSizeChange = (val) => {
   pageSize.value = val
@@ -132,24 +168,7 @@ const handleAddToMusicList = async (musicListId) => {
     ElMessage.success('收藏成功')
     collectDialogVisible.value = false
   } catch (error) {
-    ElMessage.error('收藏失败')
-  }
-}
-
-const handleCustomUpload = async (options) => {
-  const { file, onSuccess, onError } = options
-  const formData = new FormData()
-  formData.append('file', file) // Matches @RequestParam("file")
-
-  try {
-    const res = await uploadMusic(formData)
-    onSuccess(res)
-    ElMessage.success('上传成功')
-    uploadVisible.value = false
-    fetchMusicList() // Refresh list after upload
-  } catch (error) {
-    onError(error)
-    ElMessage.error('上传失败')
+    console.error(error)
   }
 }
 
@@ -189,7 +208,7 @@ onMounted(() => {
 })
 
 const handleUpload = () => {
-  uploadVisible.value = true
+  router.push('/music/upload')
 }
 
 const handlePlay = (row) => {
