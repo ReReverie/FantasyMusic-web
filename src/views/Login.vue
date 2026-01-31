@@ -49,6 +49,7 @@ import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
 import { ElMessage } from 'element-plus'
 import { register } from '@/api/user'
+import { encrypt } from '@/utils/jsencrypt'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -115,7 +116,13 @@ const handleLogin = () => {
           router.push('/')
         }
         loading.value = false
-      }).catch(() => {
+      }).catch((error) => {
+        console.error('Login failed:', error)
+        // Only show error if it hasn't been handled by the request interceptor
+        if (error.message && !error.isHandled) {
+             // Handle client-side errors (like encryption failure)
+             ElMessage.error(error.message)
+        }
         loading.value = false
       })
     }
@@ -126,11 +133,23 @@ const handleRegister = () => {
   registerFormRef.value.validate(valid => {
     if (valid) {
       loading.value = true
-      register({ username: registerForm.username, password: registerForm.password }).then(() => {
+      
+      const encryptedPassword = encrypt(registerForm.password)
+      if (!encryptedPassword) {
+        ElMessage.error('Password encryption failed')
+        loading.value = false
+        return
+      }
+
+      register({ username: registerForm.username, password: encryptedPassword }).then(() => {
         ElMessage.success('注册成功，请登录')
         activeTab.value = 'login'
         loading.value = false
-      }).catch(() => {
+      }).catch((error) => {
+        // Only show error if it hasn't been handled by the request interceptor
+        if (error.message && !error.isHandled) {
+             ElMessage.error(error.message)
+        }
         loading.value = false
       })
     }

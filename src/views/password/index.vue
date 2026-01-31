@@ -84,9 +84,19 @@ const handleSubmit = () => {
   passwordFormRef.value.validate((valid) => {
     if (valid) {
       loading.value = true
+      
+      const encryptedOldPassword = encrypt(passwordForm.oldPassword)
+      const encryptedNewPassword = encrypt(passwordForm.newPassword)
+      
+      if (!encryptedOldPassword || !encryptedNewPassword) {
+        ElMessage.error('Password encryption failed')
+        loading.value = false
+        return
+      }
+      
       updatePassword({
-        oldPassword: passwordForm.oldPassword,
-        newPassword: passwordForm.newPassword
+        oldPassword: encryptedOldPassword,
+        newPassword: encryptedNewPassword
       }).then(() => {
         ElMessage.success('密码修改成功，请重新登录')
         userStore.logout().then(() => {
@@ -94,7 +104,10 @@ const handleSubmit = () => {
         })
       }).catch((error) => {
         console.error(error)
-        // Error handling is usually done in request interceptor, but we can add specific handling here if needed
+        // Only show error if it hasn't been handled by the request interceptor
+        if (error.message && !error.isHandled) {
+             ElMessage.error(error.message)
+        }
       }).finally(() => {
         loading.value = false
       })

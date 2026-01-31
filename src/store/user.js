@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { login, logout, getUserInfo } from '@/api/user'
+import { encrypt } from '@/utils/jsencrypt'
 
 export const useUserStore = defineStore('user', {
   state: () => ({
@@ -16,7 +17,14 @@ export const useUserStore = defineStore('user', {
     login(userInfo) {
       const { username, password } = userInfo
       return new Promise((resolve, reject) => {
-        login({ username: username.trim(), password: password }).then(response => {
+        // RSA Encryption
+        const encryptedPassword = encrypt(password)
+        if (!encryptedPassword) {
+          reject(new Error('Password encryption failed'))
+          return
+        }
+        
+        login({ username: username.trim(), password: encryptedPassword }).then(response => {
           // data = { id, nickname, token }
           const data = response
           this.token = data.token
