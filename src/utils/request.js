@@ -27,9 +27,28 @@ service.interceptors.request.use(
 
 // 响应拦截器
 service.interceptors.response.use(
-  response => {
+  async response => {
     // 如果是 Blob 类型，返回整个 response 对象，以便获取 headers (如文件名)
     if (response.config.responseType === 'blob' || response.data instanceof Blob) {
+      // 检查是否是 JSON 格式的错误信息
+      if (response.data.type === 'application/json') {
+        try {
+          const text = await response.data.text()
+          const res = JSON.parse(text)
+          if (res.code !== 1) {
+             ElMessage({
+              message: res.msg || 'Error',
+              type: 'error',
+              duration: 5 * 1000
+            })
+            const err = new Error(res.msg || 'Error')
+            err.isHandled = true
+            return Promise.reject(err)
+          }
+        } catch (e) {
+          // 解析失败，继续按 Blob 处理
+        }
+      }
       return response
     }
 
