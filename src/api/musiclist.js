@@ -28,10 +28,11 @@ export function createMusicList(data) {
 }
 
 // 获取歌单详情
-export function getMusicListDetail(id) {
+export function getMusicListDetail(id, params) {
   return request({
     url: `/musiclist/${id}`,
-    method: 'get'
+    method: 'get',
+    params
   })
 }
 

@@ -75,6 +75,13 @@ onMounted(async () => {
 })
 
 const handleUpdate = () => {
+  // 邮箱验证
+  const emailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  if (userInfo.email && !emailRegex.test(userInfo.email)) {
+    ElMessage.error('邮箱格式不合法')
+    return
+  }
+
   loading.value = true
   // Construct the object to send
   const data = {

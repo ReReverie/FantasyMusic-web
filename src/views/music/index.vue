@@ -23,6 +23,27 @@
         </div>
       </template>
       
+      <div class="search-bar" style="margin-bottom: 20px;">
+        <el-input
+          v-model="searchQuery.title"
+          placeholder="搜索歌曲标题"
+          style="width: 200px; margin-right: 10px;"
+          clearable
+          @clear="handleSearch"
+          @keyup.enter="handleSearch"
+        />
+        <el-input
+          v-model="searchQuery.artist"
+          placeholder="搜索歌手"
+          style="width: 200px; margin-right: 10px;"
+          clearable
+          @clear="handleSearch"
+          @keyup.enter="handleSearch"
+        />
+        <el-button type="primary" @click="handleSearch">搜索</el-button>
+        <el-button @click="handleReset">重置</el-button>
+      </div>
+
       <el-table 
         :key="isBatchMode"
         ref="tableRef" 
@@ -165,6 +186,24 @@ const handleCurrentChange = (val) => {
   fetchMusicList()
 }
 
+const searchQuery = ref({
+  title: '',
+  artist: ''
+})
+
+const handleSearch = () => {
+  currentPage.value = 1
+  fetchMusicList()
+}
+
+const handleReset = () => {
+  searchQuery.value = {
+    title: '',
+    artist: ''
+  }
+  handleSearch()
+}
+
 // 收藏相关
 const collectDialogVisible = ref(false)
 const myMusicLists = ref([])
@@ -199,7 +238,9 @@ const fetchMusicList = async () => {
   try {
     const res = await getMusicPage({
       pageNum: currentPage.value,
-      pageSize: pageSize.value
+      pageSize: pageSize.value,
+      title: searchQuery.value.title,
+      artist: searchQuery.value.artist
     })
     // 兼容处理：
     // 1. MyBatis-Plus Page对象: { records: [], total: 0 }

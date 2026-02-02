@@ -38,8 +38,25 @@
         </div>
       </div>
 
+      <div class="table-toolbar" style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
+        <el-input
+          v-model="searchQuery"
+          placeholder="搜索标题/专辑/歌手"
+          style="width: 250px;"
+          clearable
+          @clear="handleSearch"
+          @keyup.enter="handleSearch"
+        >
+          <template #append>
+            <el-button @click="handleSearch">
+              <el-icon><Search /></el-icon>
+            </el-button>
+          </template>
+        </el-input>
+      </div>
+
       <!-- 歌曲列表 -->
-      <el-table :data="detail.musics || []" style="width: 100%; margin-top: 20px;" v-loading="loading">
+      <el-table :data="detail.musics || []" style="width: 100%;" v-loading="loading">
         <el-table-column type="index" label="#" width="50" />
         <el-table-column prop="title" label="歌曲标题" />
         <el-table-column prop="artist" label="歌手" />
@@ -72,12 +89,13 @@ import { getMusicListDetail, removeMusicFromMusicList } from '@/api/musiclist'
 import { downloadMusic } from '@/api/music'
 import { usePlayerStore } from '@/store/player'
 import { ElMessage } from 'element-plus'
-import { ArrowLeft, Picture, VideoPlay } from '@element-plus/icons-vue'
+import { ArrowLeft, Picture, VideoPlay, Search } from '@element-plus/icons-vue'
 
 const route = useRoute()
 const router = useRouter()
 const playerStore = usePlayerStore()
 
+const searchQuery = ref('')
 const loading = ref(false)
 const detail = ref({})
 
@@ -87,7 +105,9 @@ const fetchDetail = async () => {
   
   loading.value = true
   try {
-    const res = await getMusicListDetail(id)
+    const res = await getMusicListDetail(id, {
+      keyword: searchQuery.value
+    })
     detail.value = res
   } catch (error) {
     console.error(error)
@@ -111,6 +131,10 @@ const handlePlayAll = () => {
   } else {
     ElMessage.warning('歌单为空')
   }
+}
+
+const handleSearch = () => {
+  fetchDetail()
 }
 
 const handleDownload = async (row) => {
