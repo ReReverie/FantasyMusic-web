@@ -126,7 +126,10 @@ const confirmCreate = async () => {
     return
   }
   try {
-    await createMusicList(form)
+    await createMusicList({
+      title: form.title,
+      description: form.description || null
+    })
     ElMessage.success('创建成功')
     dialogVisible.value = false
     fetchMusicLists()
