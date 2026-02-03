@@ -52,6 +52,7 @@
         v-loading="loading" 
         @selection-change="handleSelectionChange"
         @row-dblclick="handleRowDblClick"
+        @row-contextmenu="handleContextMenu"
       >
         <el-table-column v-if="isBatchMode" type="selection" width="55" />
         <el-table-column label="标题" min-width="200">
@@ -141,11 +142,30 @@
       </el-scrollbar>
     </el-dialog>
 
+    <!-- Context Menu -->
+    <div 
+      v-show="contextMenuVisible" 
+      class="context-menu" 
+      :style="{ top: contextMenuPosition.top + 'px', left: contextMenuPosition.left + 'px' }"
+    >
+      <div class="menu-item" @click="handleContextMenuPlay">
+        <el-icon style="margin-right: 5px"><VideoPlay /></el-icon> 播放
+      </div>
+      <div class="menu-item" @click="handleContextMenuDownload">
+        <el-icon style="margin-right: 5px"><Download /></el-icon> 下载
+      </div>
+      <div class="menu-item" @click="handleContextMenuCollect">
+        <el-icon style="margin-right: 5px"><Star /></el-icon> 收藏
+      </div>
+      <div v-if="isAdmin" class="menu-item delete" @click="handleContextMenuDelete">
+        <el-icon style="margin-right: 5px"><Delete /></el-icon> 删除
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, computed, nextTick, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
 import { usePlayerStore } from '@/store/player'
@@ -187,6 +207,63 @@ const handleSelectionChange = (val) => {
 
 const handleRowDblClick = (row) => {
   playerStore.playMusic(row)
+}
+
+// Context Menu Logic
+const contextMenuVisible = ref(false)
+const contextMenuPosition = reactive({ top: 0, left: 0 })
+const contextMenuRow = ref(null)
+
+const handleContextMenu = (row, column, event) => {
+  event.preventDefault()
+  contextMenuRow.value = row
+  contextMenuVisible.value = true
+  contextMenuPosition.top = event.clientY
+  contextMenuPosition.left = event.clientX
+}
+
+const closeContextMenu = () => {
+  contextMenuVisible.value = false
+}
+
+const handleContextMenuPlay = () => {
+  if (contextMenuRow.value) {
+    handlePlay(contextMenuRow.value)
+    closeContextMenu()
+  }
+}
+
+const handleContextMenuDownload = () => {
+  if (contextMenuRow.value) {
+    handleDownload(contextMenuRow.value)
+    closeContextMenu()
+  }
+}
+
+const handleContextMenuCollect = () => {
+  if (contextMenuRow.value) {
+    handleOpenCollect(contextMenuRow.value)
+    closeContextMenu()
+  }
+}
+
+const handleContextMenuDelete = () => {
+  if (!contextMenuRow.value) return
+  
+  ElMessageBox.confirm(
+    '确定要删除这首歌曲吗？',
+    '提示',
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    }
+  ).then(() => {
+    handleDelete(contextMenuRow.value)
+    closeContextMenu()
+  }).catch(() => {
+    closeContextMenu()
+  })
 }
 
 const handleBatchDelete = () => {
@@ -325,6 +402,11 @@ const fetchMusicList = async () => {
 
 onMounted(() => {
   fetchMusicList()
+  window.addEventListener('click', closeContextMenu)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('click', closeContextMenu)
 })
 
 const handleUpload = () => {
@@ -394,6 +476,37 @@ const formatDuration = (ms) => {
 </script>
 
 <style scoped>
+.context-menu {
+  position: fixed;
+  z-index: 9999;
+  background-color: #fff;
+  border-radius: 4px;
+  box-shadow: 0 2px 12px 0 rgba(0,0,0,0.1);
+  padding: 5px 0;
+  min-width: 120px;
+  border: 1px solid #e4e7ed;
+}
+
+.menu-item {
+  padding: 10px 16px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #606266;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+}
+
+.menu-item:hover {
+  background-color: #f5f7fa;
+  color: #409EFF;
+}
+
+.menu-item.delete:hover {
+  background-color: #fef0f0;
+  color: #f56c6c;
+}
+
 .music-container {
   max-width: 100%;
   overflow-x: hidden;

@@ -13,6 +13,7 @@
         style="width: 100%" 
         v-loading="loading"
         @row-click="handleRowClick"
+        @row-contextmenu="handleContextMenu"
         class="clickable-rows"
       >
         <el-table-column label="歌单名称" min-width="200">
@@ -65,14 +66,28 @@
         </span>
       </template>
     </el-dialog>
+
+    <!-- Context Menu -->
+    <div 
+      v-show="contextMenuVisible" 
+      class="context-menu" 
+      :style="{ top: contextMenuPosition.top + 'px', left: contextMenuPosition.left + 'px' }"
+    >
+      <div class="menu-item" @click="handleContextMenuDetail">
+        <el-icon style="margin-right: 5px"><View /></el-icon> 查看
+      </div>
+      <div class="menu-item delete" @click="handleContextMenuDelete">
+        <el-icon style="margin-right: 5px"><Delete /></el-icon> 删除
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, reactive } from 'vue'
+import { ref, onMounted, onUnmounted, reactive } from 'vue'
 import { getMusicLists, createMusicList, deleteMusicList, getMusicListDetail } from '@/api/musiclist'
-import { ElMessage } from 'element-plus'
-import { Picture } from '@element-plus/icons-vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { Picture, View, Delete } from '@element-plus/icons-vue'
 import { getPlaylistCover } from '@/utils/music-utils'
 
 import { useRouter } from 'vue-router'
@@ -148,6 +163,49 @@ const handleRowClick = (row) => {
   handleDetail(row)
 }
 
+// Context Menu Logic
+const contextMenuVisible = ref(false)
+const contextMenuPosition = reactive({ top: 0, left: 0 })
+const contextMenuRow = ref(null)
+
+const handleContextMenu = (row, column, event) => {
+  event.preventDefault()
+  contextMenuRow.value = row
+  contextMenuVisible.value = true
+  contextMenuPosition.top = event.clientY
+  contextMenuPosition.left = event.clientX
+}
+
+const closeContextMenu = () => {
+  contextMenuVisible.value = false
+}
+
+const handleContextMenuDetail = () => {
+  if (contextMenuRow.value) {
+    handleDetail(contextMenuRow.value)
+    closeContextMenu()
+  }
+}
+
+const handleContextMenuDelete = () => {
+  if (!contextMenuRow.value) return
+  
+  ElMessageBox.confirm(
+    '确定要删除这个歌单吗？',
+    '提示',
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    }
+  ).then(() => {
+    handleDelete(contextMenuRow.value)
+    closeContextMenu()
+  }).catch(() => {
+    closeContextMenu()
+  })
+}
+
 const handleDelete = async (row) => {
   try {
     await deleteMusicList(row.id)
@@ -160,6 +218,11 @@ const handleDelete = async (row) => {
 
 onMounted(() => {
   fetchMusicLists()
+  window.addEventListener('click', closeContextMenu)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('click', closeContextMenu)
 })
 </script>
 
@@ -172,5 +235,36 @@ onMounted(() => {
 
 :deep(.clickable-rows .el-table__row) {
   cursor: pointer;
+}
+
+.context-menu {
+  position: fixed;
+  z-index: 9999;
+  background-color: #fff;
+  border-radius: 4px;
+  box-shadow: 0 2px 12px 0 rgba(0,0,0,0.1);
+  padding: 5px 0;
+  min-width: 120px;
+  border: 1px solid #e4e7ed;
+}
+
+.menu-item {
+  padding: 10px 16px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #606266;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+}
+
+.menu-item:hover {
+  background-color: #f5f7fa;
+  color: #409EFF;
+}
+
+.menu-item.delete:hover {
+  background-color: #fef0f0;
+  color: #f56c6c;
 }
 </style>
