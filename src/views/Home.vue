@@ -13,20 +13,6 @@
       <p class="subtitle">沉浸在无尽的旋律中</p>
     </div>
 
-    <!-- 轮播图区域 -->
-    <div class="banner-section">
-      <el-carousel :interval="5000" type="card" height="220px" indicator-position="none">
-        <el-carousel-item v-for="item in banners" :key="item.title">
-          <div class="banner-item" :style="{ backgroundImage: `url(${item.url})` }">
-            <div class="banner-content">
-              <span class="banner-tag">精选</span>
-              <h3 class="banner-title">{{ item.title }}</h3>
-            </div>
-          </div>
-        </el-carousel-item>
-      </el-carousel>
-    </div>
-
     <!-- 统计卡片区域 -->
     <div class="stats-grid">
       <div class="stat-card glass-panel from-blue">
@@ -164,7 +150,6 @@ const playlistCount = ref(0)
 const collectedMusicCount = ref(0)
 const playlists = ref([])
 const latestMusic = ref([])
-const banners = ref([])
 
 onMounted(async () => {
   await fetchData()
@@ -178,7 +163,6 @@ const fetchData = async () => {
     collectedMusicCount.value = data.collectedMusicCount
     playlists.value = data.recommendPlaylists
     latestMusic.value = data.latestMusic
-    banners.value = data.banners
   } catch (error) {
     console.error('Fetch home data failed', error)
   }
@@ -278,62 +262,6 @@ $primary-color: #667eea;
     color: #606266;
     font-size: 16px;
     opacity: 0.8;
-  }
-}
-
-/* 轮播图优化 */
-.banner-section {
-  position: relative;
-  z-index: 1;
-  margin-bottom: 40px;
-  
-  :deep(.el-carousel__mask) {
-    background-color: #fff;
-    opacity: 0.4;
-  }
-  
-  .banner-item {
-    height: 100%;
-    border-radius: 16px;
-    background-size: cover;
-    background-position: center;
-    position: relative;
-    overflow: hidden;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.15);
-    transition: transform 0.3s;
-    
-    &::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 60%);
-    }
-    
-    .banner-content {
-      position: absolute;
-      bottom: 24px;
-      left: 24px;
-      z-index: 2;
-      color: #fff;
-      
-      .banner-tag {
-        display: inline-block;
-        padding: 4px 12px;
-        background: rgba(255,255,255,0.2);
-        backdrop-filter: blur(4px);
-        border-radius: 20px;
-        font-size: 12px;
-        margin-bottom: 8px;
-        border: 1px solid rgba(255,255,255,0.3);
-      }
-      
-      .banner-title {
-        font-size: 28px;
-        margin: 0;
-        font-weight: bold;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-      }
-    }
   }
 }
 

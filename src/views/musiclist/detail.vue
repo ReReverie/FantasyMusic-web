@@ -59,7 +59,13 @@
       </div>
 
       <!-- 歌曲列表 -->
-      <el-table :data="Array.isArray(detail.musics) ? detail.musics : []" style="width: 100%;" v-loading="loading">
+      <el-table 
+        :data="Array.isArray(detail.musics) ? detail.musics : []" 
+        style="width: 100%;" 
+        v-loading="loading"
+        @row-dblclick="handleRowDblClick"
+        @row-contextmenu="handleContextMenu"
+      >
         <el-table-column type="index" label="#" width="50" />
         <el-table-column label="标题" min-width="300">
           <template #default="scope">
@@ -133,16 +139,33 @@
         </span>
       </template>
     </el-dialog>
+
+    <!-- Context Menu -->
+    <div 
+      v-show="contextMenuVisible" 
+      class="context-menu" 
+      :style="{ top: contextMenuPosition.top + 'px', left: contextMenuPosition.left + 'px' }"
+    >
+      <div class="menu-item" @click="handleContextMenuPlay">
+        <el-icon style="margin-right: 5px"><VideoPlay /></el-icon> 播放
+      </div>
+      <div class="menu-item" @click="handleContextMenuDownload">
+        <el-icon style="margin-right: 5px"><Download /></el-icon> 下载
+      </div>
+      <div class="menu-item delete" @click="handleContextMenuRemove">
+        <el-icon style="margin-right: 5px"><Delete /></el-icon> 移除
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getMusicListDetail, removeMusicFromMusicList, searchMusicInList, updateMusicList } from '@/api/musiclist'
 import { downloadMusic } from '@/api/music'
 import { usePlayerStore } from '@/store/player'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { ArrowLeft, Picture, VideoPlay, Search, Download, Delete, Edit } from '@element-plus/icons-vue'
 import { getCoverUrl, getPlaylistCover } from '@/utils/music-utils'
 
@@ -212,6 +235,60 @@ const fetchDetail = async () => {
 
 const handlePlay = (row) => {
   playerStore.playMusic(row)
+}
+
+const handleRowDblClick = (row) => {
+  handlePlay(row)
+}
+
+// Context Menu Logic
+const contextMenuVisible = ref(false)
+const contextMenuPosition = reactive({ top: 0, left: 0 })
+const contextMenuRow = ref(null)
+
+const handleContextMenu = (row, column, event) => {
+  event.preventDefault()
+  contextMenuRow.value = row
+  contextMenuVisible.value = true
+  contextMenuPosition.top = event.clientY
+  contextMenuPosition.left = event.clientX
+}
+
+const closeContextMenu = () => {
+  contextMenuVisible.value = false
+}
+
+const handleContextMenuPlay = () => {
+  if (contextMenuRow.value) {
+    handlePlay(contextMenuRow.value)
+    closeContextMenu()
+  }
+}
+
+const handleContextMenuDownload = () => {
+  if (contextMenuRow.value) {
+    handleDownload(contextMenuRow.value)
+    closeContextMenu()
+  }
+}
+
+const handleContextMenuRemove = () => {
+  if (!contextMenuRow.value) return
+  
+  ElMessageBox.confirm(
+    '确定要从歌单移除这首歌吗？',
+    '提示',
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    }
+  ).then(() => {
+    handleRemove(contextMenuRow.value)
+    closeContextMenu()
+  }).catch(() => {
+    closeContextMenu()
+  })
 }
 
 const handlePlayAll = () => {
@@ -329,6 +406,11 @@ const formatDuration = (ms) => {
 
 onMounted(() => {
   fetchDetail()
+  window.addEventListener('click', closeContextMenu)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('click', closeContextMenu)
 })
 </script>
 
@@ -406,5 +488,36 @@ onMounted(() => {
 
 .actions {
   margin-top: auto;
+}
+
+.context-menu {
+  position: fixed;
+  z-index: 9999;
+  background-color: #fff;
+  border-radius: 4px;
+  box-shadow: 0 2px 12px 0 rgba(0,0,0,0.1);
+  padding: 5px 0;
+  min-width: 120px;
+  border: 1px solid #e4e7ed;
+}
+
+.menu-item {
+  padding: 10px 16px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #606266;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+}
+
+.menu-item:hover {
+  background-color: #f5f7fa;
+  color: #409EFF;
+}
+
+.menu-item.delete:hover {
+  background-color: #fef0f0;
+  color: #f56c6c;
 }
 </style>
