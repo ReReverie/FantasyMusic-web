@@ -26,7 +26,7 @@
         <div class="info-content">
           <h2>{{ detail.title }}</h2>
           <div class="meta">
-            <span>创建时间：{{ detail.createTime }}</span>
+            <span>创建时间：{{ formatDate(detail.createTime) }}</span>
             <span class="track-count">歌曲数：{{ detail.musics ? detail.musics.length : 0 }}</span>
           </div>
           <p class="description">{{ detail.description || '暂无简介' }}</p>
@@ -41,7 +41,16 @@
         </div>
       </div>
 
-      <div class="table-toolbar" style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
+      <div class="table-toolbar" style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+        <div>
+          <el-button 
+            type="danger" 
+            :disabled="!multipleSelection.length" 
+            @click="handleBatchRemove"
+          >
+            <el-icon><Delete /></el-icon> 批量移除
+          </el-button>
+        </div>
         <el-input
           v-model="searchQuery"
           placeholder="搜索标题/专辑/歌手"
@@ -63,9 +72,11 @@
         :data="Array.isArray(detail.musics) ? detail.musics : []" 
         style="width: 100%;" 
         v-loading="loading"
+        @selection-change="handleSelectionChange"
         @row-dblclick="handleRowDblClick"
         @row-contextmenu="handleContextMenu"
       >
+        <el-table-column type="selection" width="55" />
         <el-table-column type="index" label="#" width="50" />
         <el-table-column label="标题" min-width="300">
           <template #default="scope">
@@ -162,12 +173,12 @@
 <script setup>
 import { ref, onMounted, onUnmounted, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getMusicListDetail, removeMusicFromMusicList, searchMusicInList, updateMusicList } from '@/api/musiclist'
+import { getMusicListDetail, removeMusicFromMusicList, batchRemoveMusicFromMusicList, searchMusicInList, updateMusicList } from '@/api/musiclist'
 import { downloadMusic } from '@/api/music'
 import { usePlayerStore } from '@/store/player'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { ArrowLeft, Picture, VideoPlay, Search, Download, Delete, Edit } from '@element-plus/icons-vue'
-import { getCoverUrl, getPlaylistCover } from '@/utils/music-utils'
+import { getCoverUrl, getPlaylistCover, formatDate } from '@/utils/music-utils'
 
 const route = useRoute()
 const router = useRouter()
@@ -185,6 +196,42 @@ const editForm = ref({
   description: '',
   cover: ''
 })
+
+const multipleSelection = ref([])
+
+const handleSelectionChange = (val) => {
+  multipleSelection.value = val
+}
+
+const handleBatchRemove = () => {
+  if (multipleSelection.value.length === 0) return
+  
+  ElMessageBox.confirm(
+    `确定要从歌单移除这 ${multipleSelection.value.length} 首歌曲吗？`,
+    '提示',
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    }
+  ).then(async () => {
+    try {
+      const musicIds = multipleSelection.value.map(item => item.id)
+      await batchRemoveMusicFromMusicList({
+        musicListId: detail.value.id,
+        musicIds
+      })
+      ElMessage.success('批量移除成功')
+      fetchDetail()
+      multipleSelection.value = []
+    } catch (error) {
+      console.error(error)
+      ElMessage.error('批量移除失败')
+    }
+  }).catch(() => {
+    // cancelled
+  })
+}
 
 const handleEdit = () => {
   if (!detail.value) return

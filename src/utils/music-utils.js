@@ -45,3 +45,10 @@ export function getPlaylistCover(playlist) {
   // 3. 既没设置封面，也没获取到歌曲信息（或歌单确实为空），展示随机图片
   return `https://picsum.photos/300/300?random=${playlist.id}`
 }
+
+// 格式化日期时间 (YYYY-MM-DD)
+export function formatDate(timeStr) {
+  if (!timeStr) return ''
+  // 简单处理：截取 T 之前的部分
+  return timeStr.split('T')[0]
+}

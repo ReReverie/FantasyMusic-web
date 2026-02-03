@@ -6,12 +6,21 @@
           <span>音乐库</span>
           <div class="header-actions">
             <template v-if="!isBatchMode">
-              <el-button v-if="isAdmin" @click="toggleBatchMode(true)" style="margin-right: 12px;">批量删除</el-button>
+              <el-button @click="toggleBatchMode(true)" style="margin-right: 12px;">批量操作</el-button>
               <el-button v-if="isAdmin" type="primary" @click="handleUpload">上传音乐</el-button>
             </template>
             <template v-else>
               <el-button @click="toggleBatchMode(false)" style="margin-right: 12px;">取消</el-button>
               <el-button 
+                type="warning" 
+                :disabled="multipleSelection.length === 0" 
+                @click="handleBatchCollect"
+                style="margin-right: 12px;"
+              >
+                批量收藏
+              </el-button>
+              <el-button 
+                v-if="isAdmin"
                 type="danger" 
                 :disabled="multipleSelection.length === 0" 
                 @click="handleBatchDelete"
@@ -170,7 +179,7 @@ import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
 import { usePlayerStore } from '@/store/player'
 import { getMusicPage, deleteMusic, batchDeleteMusic, downloadMusic, searchMusic } from '@/api/music'
-import { getMusicLists, addMusicToMusicList } from '@/api/musiclist'
+import { getMusicLists, addMusicToMusicList, batchAddMusicToMusicList } from '@/api/musiclist'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Picture, VideoPlay, Download, Star, Delete } from '@element-plus/icons-vue'
 import { getCoverUrl } from '@/utils/music-utils'
@@ -206,6 +215,7 @@ const handleSelectionChange = (val) => {
 }
 
 const handleRowDblClick = (row) => {
+  if (isBatchMode.value) return
   playerStore.playMusic(row)
 }
 
@@ -326,9 +336,11 @@ const handleReset = () => {
 const collectDialogVisible = ref(false)
 const myMusicLists = ref([])
 const currentMusicId = ref(null)
+const isBatchCollectAction = ref(false)
 
 const handleOpenCollect = async (row) => {
   currentMusicId.value = row.id
+  isBatchCollectAction.value = false
   try {
     const res = await getMusicLists()
     console.log('User music lists:', res)
@@ -339,16 +351,42 @@ const handleOpenCollect = async (row) => {
   }
 }
 
+const handleBatchCollect = async () => {
+  isBatchCollectAction.value = true
+  try {
+    const res = await getMusicLists()
+    myMusicLists.value = res || []
+    collectDialogVisible.value = true
+  } catch (error) {
+    ElMessage.error('获取歌单列表失败')
+  }
+}
+
 const handleAddToMusicList = async (musicListId) => {
   try {
-    await addMusicToMusicList({
-      musicListId,
-      musicId: currentMusicId.value
-    })
-    ElMessage.success('收藏成功')
+    if (isBatchCollectAction.value) {
+      const musicIds = multipleSelection.value.map(item => item.id)
+      await batchAddMusicToMusicList({
+        musicListId,
+        musicIds
+      })
+      ElMessage.success('批量收藏成功')
+      // 清空选择并退出批量模式
+      multipleSelection.value = []
+      toggleBatchMode(false)
+    } else {
+      await addMusicToMusicList({
+        musicListId,
+        musicId: currentMusicId.value
+      })
+      ElMessage.success('收藏成功')
+    }
     collectDialogVisible.value = false
   } catch (error) {
     console.error(error)
+    ElMessage.error('收藏失败')
+  } finally {
+    isBatchCollectAction.value = false
   }
 }
 

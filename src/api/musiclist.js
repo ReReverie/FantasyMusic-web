@@ -53,10 +53,28 @@ export function addMusicToMusicList(data) {
   })
 }
 
+// 批量添加音乐到歌单
+export function batchAddMusicToMusicList(data) {
+  return request({
+    url: '/musiclist/batchAddMusic',
+    method: 'post',
+    data
+  })
+}
+
 // 从歌单移除音乐
 export function removeMusicFromMusicList(data) {
   return request({
     url: '/musiclist/removeMusic',
+    method: 'delete',
+    data
+  })
+}
+
+// 批量从歌单移除音乐
+export function batchRemoveMusicFromMusicList(data) {
+  return request({
+    url: '/musiclist/batchRemoveMusic',
     method: 'delete',
     data
   })

@@ -35,7 +35,11 @@
           </template>
         </el-table-column>
         <el-table-column prop="description" label="简介" show-overflow-tooltip />
-        <el-table-column prop="createTime" label="创建时间" width="180" />
+        <el-table-column prop="createTime" label="创建时间" width="180">
+          <template #default="scope">
+            {{ formatDate(scope.row.createTime) }}
+          </template>
+        </el-table-column>
         <el-table-column label="操作" width="200">
           <template #default="scope">
             <el-button size="small" @click="handleDetail(scope.row)">查看</el-button>
@@ -88,7 +92,7 @@ import { ref, onMounted, onUnmounted, reactive } from 'vue'
 import { getMusicLists, createMusicList, deleteMusicList, getMusicListDetail } from '@/api/musiclist'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Picture, View, Delete } from '@element-plus/icons-vue'
-import { getPlaylistCover } from '@/utils/music-utils'
+import { getPlaylistCover, formatDate } from '@/utils/music-utils'
 
 import { useRouter } from 'vue-router'
 
