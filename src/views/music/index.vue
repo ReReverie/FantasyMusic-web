@@ -100,7 +100,7 @@
         >
           <div class="list-info">
             <span class="list-title">{{ list.title }}</span>
-            <span class="list-count">{{ list.musics ? list.musics.length : 0 }}首</span>
+            <span class="list-count">{{ (list.musicCount !== undefined ? list.musicCount : (list.musics ? list.musics.length : 0)) }}首</span>
           </div>
         </div>
       </el-scrollbar>
@@ -114,7 +114,7 @@ import { ref, onMounted, computed, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
 import { usePlayerStore } from '@/store/player'
-import { getMusicPage, deleteMusic, batchDeleteMusic, downloadMusic } from '@/api/music'
+import { getMusicPage, deleteMusic, batchDeleteMusic, downloadMusic, searchMusic } from '@/api/music'
 import { getMusicLists, addMusicToMusicList } from '@/api/musiclist'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
@@ -213,6 +213,7 @@ const handleOpenCollect = async (row) => {
   currentMusicId.value = row.id
   try {
     const res = await getMusicLists()
+    console.log('User music lists:', res)
     myMusicLists.value = res || []
     collectDialogVisible.value = true
   } catch (error) {
@@ -236,12 +237,23 @@ const handleAddToMusicList = async (musicListId) => {
 const fetchMusicList = async () => {
   loading.value = true
   try {
-    const res = await getMusicPage({
-      pageNum: currentPage.value,
-      pageSize: pageSize.value,
-      title: searchQuery.value.title,
-      artist: searchQuery.value.artist
-    })
+    let res
+    // 如果有搜索条件，使用 searchMusic 接口
+    if (searchQuery.value.title || searchQuery.value.artist) {
+      res = await searchMusic({
+        pageNum: currentPage.value,
+        pageSize: pageSize.value,
+        title: searchQuery.value.title,
+        artist: searchQuery.value.artist
+      })
+    } else {
+      // 否则使用 getMusicPage 接口
+      res = await getMusicPage({
+        pageNum: currentPage.value,
+        pageSize: pageSize.value
+      })
+    }
+
     // 兼容处理：
     // 1. MyBatis-Plus Page对象: { records: [], total: 0 }
     // 2. 自定义 PageDTO: { list: [], total: 0 }
@@ -255,12 +267,16 @@ const fetchMusicList = async () => {
     } else if (Array.isArray(res)) {
       musicList.value = res
       total.value = res.length
+    } else if (res.data && Array.isArray(res.data)) { // 增强对后端返回结构的处理
+       musicList.value = res.data
+       total.value = res.total ? parseInt(res.total) : res.data.length
     } else {
       musicList.value = []
       total.value = 0
     }
   } catch (error) {
     console.error(error)
+    ElMessage.error('获取音乐列表失败')
   } finally {
     loading.value = false
   }

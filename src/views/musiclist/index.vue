@@ -23,18 +23,6 @@
           </template>
         </el-table-column>
       </el-table>
-
-      <div class="pagination-container">
-        <el-pagination
-          v-model:current-page="currentPage"
-          v-model:page-size="pageSize"
-          :page-sizes="[20, 50, 100]"
-          layout="total, sizes, prev, pager, next, jumper"
-          :total="total"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-        />
-      </div>
     </el-card>
 
     <!-- 创建歌单弹窗 -->
@@ -59,7 +47,7 @@
 
 <script setup>
 import { ref, onMounted, reactive } from 'vue'
-import { getMusicListPage, createMusicList, deleteMusicList } from '@/api/musiclist'
+import { getMusicLists, createMusicList, deleteMusicList } from '@/api/musiclist'
 import { ElMessage } from 'element-plus'
 
 import { useRouter } from 'vue-router'
@@ -73,39 +61,14 @@ const form = reactive({
   description: ''
 })
 
-const currentPage = ref(1)
-const pageSize = ref(20)
-const total = ref(0)
-
-const handleSizeChange = (val) => {
-  pageSize.value = val
-  fetchMusicLists()
-}
-
-const handleCurrentChange = (val) => {
-  currentPage.value = val
-  fetchMusicLists()
-}
-
 const fetchMusicLists = async () => {
   loading.value = true
   try {
-    const res = await getMusicListPage({
-      pageNum: currentPage.value,
-      pageSize: pageSize.value
-    })
-    if (res.records) {
-      musicLists.value = res.records
-      total.value = parseInt(res.total)
-    } else if (res.list) {
-      musicLists.value = res.list
-      total.value = parseInt(res.total)
-    } else if (Array.isArray(res)) {
+    const res = await getMusicLists()
+    if (Array.isArray(res)) {
       musicLists.value = res
-      total.value = res.length
     } else {
       musicLists.value = []
-      total.value = 0
     }
   } catch (error) {
     console.error(error)
@@ -162,11 +125,5 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-}
-
-.pagination-container {
-  margin-top: 20px;
-  display: flex;
-  justify-content: flex-end;
 }
 </style>

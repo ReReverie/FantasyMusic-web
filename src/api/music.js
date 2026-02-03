@@ -18,6 +18,15 @@ export function getMusicPage(params) {
   })
 }
 
+// 搜索音乐
+export function searchMusic(params) {
+  return request({
+    url: '/music/search',
+    method: 'get',
+    params
+  })
+}
+
 // 上传音乐
 export function uploadMusic(data, config = {}) {
   return request({

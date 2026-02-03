@@ -9,15 +9,6 @@ export function getMusicLists(params) {
   })
 }
 
-// 分页获取歌单列表
-export function getMusicListPage(params) {
-  return request({
-    url: '/musiclist/page',
-    method: 'get',
-    params
-  })
-}
-
 // 创建歌单
 export function createMusicList(data) {
   return request({
@@ -28,9 +19,17 @@ export function createMusicList(data) {
 }
 
 // 获取歌单详情
-export function getMusicListDetail(id, params) {
+export function getMusicListDetail(id) {
   return request({
     url: `/musiclist/${id}`,
+    method: 'get'
+  })
+}
+
+// 歌单详情内搜索
+export function searchMusicInList(id, params) {
+  return request({
+    url: `/musiclist/${id}/search`,
     method: 'get',
     params
   })

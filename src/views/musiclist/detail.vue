@@ -56,7 +56,7 @@
       </div>
 
       <!-- 歌曲列表 -->
-      <el-table :data="detail.musics || []" style="width: 100%;" v-loading="loading">
+      <el-table :data="Array.isArray(detail.musics) ? detail.musics : []" style="width: 100%;" v-loading="loading">
         <el-table-column type="index" label="#" width="50" />
         <el-table-column prop="title" label="歌曲标题" />
         <el-table-column prop="artist" label="歌手" />
@@ -85,7 +85,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getMusicListDetail, removeMusicFromMusicList } from '@/api/musiclist'
+import { getMusicListDetail, removeMusicFromMusicList, searchMusicInList } from '@/api/musiclist'
 import { downloadMusic } from '@/api/music'
 import { usePlayerStore } from '@/store/player'
 import { ElMessage } from 'element-plus'
@@ -105,9 +105,7 @@ const fetchDetail = async () => {
   
   loading.value = true
   try {
-    const res = await getMusicListDetail(id, {
-      keyword: searchQuery.value
-    })
+    const res = await getMusicListDetail(id)
     detail.value = res
   } catch (error) {
     console.error(error)
@@ -133,8 +131,47 @@ const handlePlayAll = () => {
   }
 }
 
-const handleSearch = () => {
-  fetchDetail()
+const handleSearch = async () => {
+  if (!searchQuery.value) {
+    fetchDetail()
+    return
+  }
+
+  const id = route.params.id
+  if (!id) return
+
+  loading.value = true
+  console.log('Starting search with keyword:', searchQuery.value)
+  try {
+    const res = await searchMusicInList(id, {
+      keyword: searchQuery.value
+    })
+    console.log('Search response:', res)
+    // 搜索接口只返回歌曲列表，我们需要更新 detail 中的 musics
+    if (detail.value) {
+      // 确保 res 是数组，如果是对象则尝试取其 list 属性或 records 属性，否则设为空数组
+      let musicList = []
+      if (Array.isArray(res)) {
+        musicList = res
+      } else if (res && Array.isArray(res.musics)) {
+        musicList = res.musics
+      } else if (res && Array.isArray(res.list)) {
+        musicList = res.list
+      } else if (res && Array.isArray(res.records)) {
+        musicList = res.records
+      } else if (res && Array.isArray(res.data)) {
+         musicList = res.data
+      }
+      
+      detail.value.musics = musicList
+    }
+  } catch (error) {
+    console.error('Search error:', error)
+    ElMessage.error('搜索失败')
+  } finally {
+    console.log('Search finished, resetting loading')
+    loading.value = false
+  }
 }
 
 const handleDownload = async (row) => {
