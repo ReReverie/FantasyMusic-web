@@ -42,14 +42,20 @@
       </div>
 
       <div class="table-toolbar" style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-        <div>
-          <el-button 
-            type="danger" 
-            :disabled="!multipleSelection.length" 
-            @click="handleBatchRemove"
-          >
-            <el-icon><Delete /></el-icon> 批量移除
-          </el-button>
+        <div class="toolbar-actions">
+          <template v-if="!isBatchMode">
+            <el-button @click="toggleBatchMode(true)">批量操作</el-button>
+          </template>
+          <template v-else>
+            <el-button @click="toggleBatchMode(false)" style="margin-right: 12px;">取消</el-button>
+            <el-button 
+              type="danger" 
+              :disabled="!multipleSelection.length" 
+              @click="handleBatchRemove"
+            >
+              <el-icon><Delete /></el-icon> 批量移除
+            </el-button>
+          </template>
         </div>
         <el-input
           v-model="searchQuery"
@@ -69,6 +75,7 @@
 
       <!-- 歌曲列表 -->
       <el-table 
+        :key="isBatchMode"
         :data="Array.isArray(detail.musics) ? detail.musics : []" 
         style="width: 100%;" 
         v-loading="loading"
@@ -76,7 +83,7 @@
         @row-dblclick="handleRowDblClick"
         @row-contextmenu="handleContextMenu"
       >
-        <el-table-column type="selection" width="55" />
+        <el-table-column v-if="isBatchMode" type="selection" width="55" />
         <el-table-column type="index" label="#" width="50" />
         <el-table-column label="标题" min-width="300">
           <template #default="scope">
@@ -198,6 +205,15 @@ const editForm = ref({
 })
 
 const multipleSelection = ref([])
+const isBatchMode = ref(false)
+
+const toggleBatchMode = (val) => {
+  isBatchMode.value = val
+  if (!val) {
+    multipleSelection.value = []
+    // Clear selection in table if needed, though reactive binding should handle it
+  }
+}
 
 const handleSelectionChange = (val) => {
   multipleSelection.value = val
@@ -223,7 +239,7 @@ const handleBatchRemove = () => {
       })
       ElMessage.success('批量移除成功')
       fetchDetail()
-      multipleSelection.value = []
+      toggleBatchMode(false)
     } catch (error) {
       console.error(error)
       ElMessage.error('批量移除失败')
@@ -285,6 +301,7 @@ const handlePlay = (row) => {
 }
 
 const handleRowDblClick = (row) => {
+  if (isBatchMode.value) return
   handlePlay(row)
 }
 
