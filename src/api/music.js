@@ -71,6 +71,15 @@ export function batchDeleteMusic(ids) {
   })
 }
 
+// 更新音乐信息
+export function updateMusic(data) {
+  return request({
+    url: '/music/update',
+    method: 'put',
+    data
+  })
+}
+
 // 下载音乐
 export function downloadMusic(id) {
   return request({

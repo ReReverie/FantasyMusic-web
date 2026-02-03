@@ -34,6 +34,9 @@
             <el-button type="primary" @click="handlePlayAll">
               <el-icon><VideoPlay /></el-icon> 播放全部
             </el-button>
+            <el-button @click="handleEdit">
+              <el-icon><Edit /></el-icon> 编辑信息
+            </el-button>
           </div>
         </div>
       </div>
@@ -58,38 +61,90 @@
       <!-- 歌曲列表 -->
       <el-table :data="Array.isArray(detail.musics) ? detail.musics : []" style="width: 100%;" v-loading="loading">
         <el-table-column type="index" label="#" width="50" />
-        <el-table-column prop="title" label="歌曲标题" />
-        <el-table-column prop="artist" label="歌手" />
-        <el-table-column prop="album" label="专辑" />
+        <el-table-column label="标题" min-width="300">
+          <template #default="scope">
+             <div style="display: flex; align-items: center;">
+               <el-image 
+                 style="width: 40px; height: 40px; border-radius: 4px; flex-shrink: 0; margin-right: 12px;" 
+                 :src="getCoverUrl(scope.row)" 
+                 fit="cover"
+                 preview-teleported
+                 :preview-src-list="[getCoverUrl(scope.row)]"
+               >
+                 <template #error>
+                   <div class="image-slot" style="background: #f5f7fa; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #909399;">
+                      <el-icon><Picture /></el-icon>
+                   </div>
+                 </template>
+               </el-image>
+               <div style="display: flex; flex-direction: column; justify-content: center; overflow: hidden;">
+                 <span style="font-size: 14px; font-weight: 500; color: #303133; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ scope.row.title }}</span>
+                 <span style="font-size: 12px; color: #909399; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    <el-tag v-if="scope.row.quality" size="small" type="warning" effect="dark" style="transform: scale(0.8); transform-origin: left center; margin-right: 4px;">{{ scope.row.quality || 'HQ' }}</el-tag>
+                    {{ scope.row.artist }}
+                 </span>
+               </div>
+             </div>
+          </template>
+        </el-table-column>
+        <el-table-column prop="album" label="专辑" show-overflow-tooltip />
         <el-table-column prop="durationMs" label="时长" width="100">
           <template #default="scope">
             {{ formatDuration(scope.row.durationMs) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="250">
+        <el-table-column label="操作" width="180">
           <template #default="scope">
-            <el-button size="small" @click="handlePlay(scope.row)">播放</el-button>
-            <el-button size="small" type="success" @click="handleDownload(scope.row)">下载</el-button>
-            <el-popconfirm title="确定要从歌单移除这首歌吗？" @confirm="handleRemove(scope.row)">
-              <template #reference>
-                <el-button size="small" type="danger">移除</el-button>
-              </template>
-            </el-popconfirm>
+            <div style="display: flex; gap: 8px;">
+              <el-tooltip content="播放" placement="top" :show-after="500">
+                <el-button size="small" type="primary" plain circle :icon="VideoPlay" @click="handlePlay(scope.row)" />
+              </el-tooltip>
+              <el-tooltip content="下载" placement="top" :show-after="500">
+                <el-button size="small" type="success" plain circle :icon="Download" @click="handleDownload(scope.row)" />
+              </el-tooltip>
+              <el-popconfirm title="确定要从歌单移除这首歌吗？" @confirm="handleRemove(scope.row)" width="200">
+                <template #reference>
+                  <el-button size="small" type="danger" circle :icon="Delete" title="移除" />
+                </template>
+              </el-popconfirm>
+            </div>
           </template>
         </el-table-column>
       </el-table>
     </el-card>
+
+    <!-- 编辑歌单弹窗 -->
+    <el-dialog v-model="editDialogVisible" title="编辑歌单信息" width="500px">
+      <el-form :model="editForm" label-width="80px">
+        <el-form-item label="歌单名称">
+          <el-input v-model="editForm.title" placeholder="请输入歌单名称" />
+        </el-form-item>
+        <el-form-item label="封面链接">
+           <el-input v-model="editForm.cover" placeholder="请输入封面图片链接" />
+        </el-form-item>
+        <el-form-item label="简介">
+          <el-input v-model="editForm.description" type="textarea" :rows="3" placeholder="请输入简介" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="editDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="confirmEdit" :loading="editLoading">保存</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getMusicListDetail, removeMusicFromMusicList, searchMusicInList } from '@/api/musiclist'
+import { getMusicListDetail, removeMusicFromMusicList, searchMusicInList, updateMusicList } from '@/api/musiclist'
 import { downloadMusic } from '@/api/music'
 import { usePlayerStore } from '@/store/player'
 import { ElMessage } from 'element-plus'
-import { ArrowLeft, Picture, VideoPlay, Search } from '@element-plus/icons-vue'
+import { ArrowLeft, Picture, VideoPlay, Search, Download, Delete, Edit } from '@element-plus/icons-vue'
+import { getCoverUrl } from '@/utils/music-utils'
 
 const route = useRoute()
 const router = useRouter()
@@ -98,6 +153,46 @@ const playerStore = usePlayerStore()
 const searchQuery = ref('')
 const loading = ref(false)
 const detail = ref({})
+
+const editDialogVisible = ref(false)
+const editLoading = ref(false)
+const editForm = ref({
+  id: '',
+  title: '',
+  description: '',
+  cover: ''
+})
+
+const handleEdit = () => {
+  if (!detail.value) return
+  editForm.value = {
+    id: detail.value.id,
+    title: detail.value.title,
+    description: detail.value.description,
+    cover: detail.value.cover
+  }
+  editDialogVisible.value = true
+}
+
+const confirmEdit = async () => {
+  if (!editForm.value.title) {
+    ElMessage.warning('请输入歌单名称')
+    return
+  }
+  
+  editLoading.value = true
+  try {
+    await updateMusicList(editForm.value)
+    ElMessage.success('更新成功')
+    editDialogVisible.value = false
+    fetchDetail()
+  } catch (error) {
+    console.error(error)
+    ElMessage.error('更新失败')
+  } finally {
+    editLoading.value = false
+  }
+}
 
 const fetchDetail = async () => {
   const id = route.params.id

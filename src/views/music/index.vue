@@ -53,24 +53,58 @@
         @selection-change="handleSelectionChange"
       >
         <el-table-column v-if="isBatchMode" type="selection" width="55" />
-        <el-table-column prop="title" label="歌曲标题" />
-        <el-table-column prop="artist" label="歌手" />
-        <el-table-column prop="album" label="专辑" />
-        <el-table-column prop="durationMs" label="时长">
+        <el-table-column label="标题" min-width="200">
+          <template #default="scope">
+            <div style="display: flex; align-items: center;">
+              <el-image 
+                style="width: 50px; height: 50px; border-radius: 4px; flex-shrink: 0; margin-right: 12px;"
+                :src="getCoverUrl(scope.row)" 
+                :preview-src-list="[getCoverUrl(scope.row)]"
+                preview-teleported
+                fit="cover"
+              >
+                <template #error>
+                  <div class="image-slot" style="display: flex; justify-content: center; align-items: center; width: 100%; height: 100%; background: #f5f7fa; color: #909399;">
+                    <el-icon><Picture /></el-icon>
+                  </div>
+                </template>
+              </el-image>
+              <div style="display: flex; flex-direction: column; justify-content: center; overflow: hidden;">
+                <span style="font-size: 14px; font-weight: 500; color: #303133; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ scope.row.title }}</span>
+                <span style="font-size: 12px; color: #909399; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                   <el-tag v-if="scope.row.quality" size="small" type="warning" effect="dark" style="transform: scale(0.8); transform-origin: left center; margin-right: 4px;">{{ scope.row.quality || 'HQ' }}</el-tag>
+                   {{ scope.row.artist }}
+                </span>
+              </div>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column prop="album" label="专辑" min-width="150" show-overflow-tooltip />
+        <el-table-column prop="durationMs" label="时长" width="80">
           <template #default="scope">
             {{ formatDuration(scope.row.durationMs) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作">
+        <el-table-column label="操作" width="220">
           <template #default="scope">
-            <el-button size="small" @click="handlePlay(scope.row)">播放</el-button>
-            <el-button size="small" type="success" @click="handleDownload(scope.row)">下载</el-button>
-            <el-button size="small" type="warning" @click="handleOpenCollect(scope.row)">收藏</el-button>
-            <el-popconfirm v-if="isAdmin" title="确定要删除这首歌曲吗？" @confirm="handleDelete(scope.row)">
-              <template #reference>
-                <el-button size="small" type="danger">删除</el-button>
+            <div style="display: flex; gap: 8px;">
+              <el-tooltip content="播放" placement="top" :show-after="500">
+                <el-button size="small" type="primary" plain circle :icon="VideoPlay" @click="handlePlay(scope.row)" />
+              </el-tooltip>
+              <el-tooltip content="下载" placement="top" :show-after="500">
+                <el-button size="small" type="success" plain circle :icon="Download" @click="handleDownload(scope.row)" />
+              </el-tooltip>
+              <el-tooltip content="收藏" placement="top" :show-after="500">
+                <el-button size="small" type="warning" plain circle :icon="Star" @click="handleOpenCollect(scope.row)" />
+              </el-tooltip>
+              <template v-if="isAdmin">
+                <el-popconfirm title="确定要删除这首歌曲吗？" @confirm="handleDelete(scope.row)" width="200">
+                  <template #reference>
+                    <el-button size="small" type="danger" circle :icon="Delete" />
+                  </template>
+                </el-popconfirm>
               </template>
-            </el-popconfirm>
+            </div>
           </template>
         </el-table-column>
       </el-table>
@@ -117,6 +151,8 @@ import { usePlayerStore } from '@/store/player'
 import { getMusicPage, deleteMusic, batchDeleteMusic, downloadMusic, searchMusic } from '@/api/music'
 import { getMusicLists, addMusicToMusicList } from '@/api/musiclist'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Plus, Picture, VideoPlay, Download, Star, Delete } from '@element-plus/icons-vue'
+import { getCoverUrl } from '@/utils/music-utils'
 
 const router = useRouter()
 const userStore = useUserStore()

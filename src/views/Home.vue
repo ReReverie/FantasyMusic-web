@@ -117,7 +117,19 @@
             <div class="song-left">
               <span class="rank-num" :class="{ 'top-3': index < 3 }">{{ String(index + 1).padStart(2, '0') }}</span>
               <div class="song-cover-mini">
-                 <el-icon><Headset /></el-icon>
+                 <el-image 
+                   v-if="song.coverUrl || song.id"
+                   :src="getCoverUrl(song)" 
+                   style="width: 100%; height: 100%; border-radius: 4px;" 
+                   fit="cover"
+                 >
+                   <template #error>
+                     <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #f5f7fa; color: #909399;">
+                       <el-icon><Headset /></el-icon>
+                     </div>
+                   </template>
+                 </el-image>
+                 <el-icon v-else><Headset /></el-icon>
               </div>
               <div class="song-details">
                 <div class="song-name">{{ song.title }}</div>
@@ -142,6 +154,7 @@ import { ref, onMounted } from 'vue'
 import { useUserStore } from '@/store/user'
 import { getHomeData } from '@/api/home'
 import { usePlayerStore } from '@/store/player'
+import { getCoverUrl } from '@/utils/music-utils'
 
 const userStore = useUserStore()
 const playerStore = usePlayerStore()

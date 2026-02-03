@@ -18,6 +18,15 @@ export function createMusicList(data) {
   })
 }
 
+// 更新歌单
+export function updateMusicList(data) {
+  return request({
+    url: '/musiclist/update',
+    method: 'put',
+    data
+  })
+}
+
 // 获取歌单详情
 export function getMusicListDetail(id) {
   return request({
