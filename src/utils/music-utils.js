@@ -25,3 +25,23 @@ export function getCoverUrl(music) {
   
   return ''
 }
+
+// 获取歌单封面
+export function getPlaylistCover(playlist) {
+  if (!playlist) {
+    return 'https://picsum.photos/300/300?random=default'
+  }
+
+  // 1. 优先展示用户设置的封面图片（只要有 cover 字段且不为空）
+  if (playlist.cover) {
+    return playlist.cover
+  }
+
+  // 2. 如果未设置封面，但歌单内有歌曲（列表接口可能不返回 musics，这种情况下这一步会跳过）
+  if (playlist.musics && playlist.musics.length > 0) {
+    return getCoverUrl(playlist.musics[0]) || `https://picsum.photos/300/300?random=${playlist.id}`
+  }
+
+  // 3. 既没设置封面，也没获取到歌曲信息（或歌单确实为空），展示随机图片
+  return `https://picsum.photos/300/300?random=${playlist.id}`
+}

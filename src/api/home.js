@@ -1,5 +1,5 @@
 import request from '@/utils/request'
-import { getMusicLists } from './musiclist'
+import { getMusicLists, getMusicListDetail } from './musiclist'
 import { getMusicList } from './music'
 
 /**
@@ -23,18 +23,56 @@ export function getHomeData() {
   return Promise.all([
     getMusicLists(), // 获取歌单列表
     getMusicList()   // 获取音乐列表
-  ]).then(([playlists, musicList]) => {
+  ]).then(async ([playlists, musicList]) => {
     // 处理空数据情况
     const validPlaylists = Array.isArray(playlists) ? playlists : []
     const validMusicList = Array.isArray(musicList) ? musicList : []
+
+    // 获取所有歌单的详细信息，以便计算收藏歌曲总数和正确显示封面
+    const detailedPlaylists = await Promise.all(
+      validPlaylists.map(async (playlist) => {
+        try {
+          // 获取详情以拿到 musics 列表
+          const detail = await getMusicListDetail(playlist.id)
+          return {
+            ...playlist,
+            musics: detail.musics || [],
+            trackCount: detail.musics ? detail.musics.length : 0,
+            // 如果详情里有 cover 且不为空，优先用详情的（虽然通常是一样的）
+            cover: detail.cover || playlist.cover
+          }
+        } catch (error) {
+          console.warn(`Failed to fetch detail for playlist ${playlist.id}`, error)
+          return {
+            ...playlist,
+            musics: [],
+            trackCount: 0
+          }
+        }
+      })
+    )
+
+    // 计算所有歌单内音乐的总数量（去重）
+    const allMusicIds = new Set()
+    detailedPlaylists.forEach(playlist => {
+      if (playlist.musics) {
+        playlist.musics.forEach(music => {
+          if (music.id) {
+            allMusicIds.add(music.id)
+          }
+        })
+      }
+    })
+    const collectedMusicCount = allMusicIds.size
 
     return {
       // 统计数据
       playlistCount: validPlaylists.length,
       musicCount: validMusicList.length,
+      collectedMusicCount: collectedMusicCount,
       
-      // 推荐歌单（取前8个）
-      recommendPlaylists: validPlaylists.slice(0, 8),
+      // 推荐歌单（取前8个，已补充详情）
+      recommendPlaylists: detailedPlaylists.slice(0, 8),
       
       // 最新音乐（取前10首）
       latestMusic: validMusicList.slice(0, 10),

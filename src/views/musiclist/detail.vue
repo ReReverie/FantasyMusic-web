@@ -15,7 +15,7 @@
       <!-- 歌单信息 -->
       <div class="info-section" v-if="detail">
         <div class="cover">
-          <el-image :src="detail.cover || 'https://placeholder.com/150'" fit="cover" class="cover-img">
+          <el-image :src="getPlaylistCover(detail)" fit="cover" class="cover-img">
             <template #error>
               <div class="image-slot">
                 <el-icon><Picture /></el-icon>
@@ -144,7 +144,7 @@ import { downloadMusic } from '@/api/music'
 import { usePlayerStore } from '@/store/player'
 import { ElMessage } from 'element-plus'
 import { ArrowLeft, Picture, VideoPlay, Search, Download, Delete, Edit } from '@element-plus/icons-vue'
-import { getCoverUrl } from '@/utils/music-utils'
+import { getCoverUrl, getPlaylistCover } from '@/utils/music-utils'
 
 const route = useRoute()
 const router = useRouter()

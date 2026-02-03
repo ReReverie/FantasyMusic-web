@@ -52,7 +52,7 @@
           <el-icon><Star /></el-icon>
         </div>
         <div class="stat-info">
-          <div class="stat-value">--</div>
+          <div class="stat-value">{{ collectedMusicCount }}</div>
           <div class="stat-label">收藏歌曲</div>
         </div>
       </div>
@@ -82,7 +82,7 @@
         <div class="playlist-grid" v-if="playlists.length > 0">
           <div class="playlist-card" v-for="list in playlists" :key="list.id" @click="$router.push(`/musiclist/${list.id}`)">
             <div class="image-wrapper">
-              <el-image :src="list.cover || 'https://picsum.photos/300/300?random=' + list.id" fit="cover" loading="lazy">
+              <el-image :src="getPlaylistCover(list)" fit="cover" loading="lazy">
                 <template #error>
                   <div class="image-placeholder">
                     <el-icon><Picture /></el-icon>
@@ -95,7 +95,7 @@
             </div>
             <div class="playlist-info">
               <div class="playlist-title">{{ list.title }}</div>
-              <div class="playlist-meta">{{ list.trackCount || 0 }} 首歌曲</div>
+              <div class="playlist-meta">{{ list.musics ? list.musics.length : (list.trackCount || 0) }} 首歌曲</div>
             </div>
           </div>
         </div>
@@ -154,13 +154,14 @@ import { ref, onMounted } from 'vue'
 import { useUserStore } from '@/store/user'
 import { getHomeData } from '@/api/home'
 import { usePlayerStore } from '@/store/player'
-import { getCoverUrl } from '@/utils/music-utils'
+import { getCoverUrl, getPlaylistCover } from '@/utils/music-utils'
 
 const userStore = useUserStore()
 const playerStore = usePlayerStore()
 
 const musicCount = ref(0)
 const playlistCount = ref(0)
+const collectedMusicCount = ref(0)
 const playlists = ref([])
 const latestMusic = ref([])
 const banners = ref([])
@@ -174,6 +175,7 @@ const fetchData = async () => {
     const data = await getHomeData()
     musicCount.value = data.musicCount
     playlistCount.value = data.playlistCount
+    collectedMusicCount.value = data.collectedMusicCount
     playlists.value = data.recommendPlaylists
     latestMusic.value = data.latestMusic
     banners.value = data.banners
