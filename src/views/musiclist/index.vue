@@ -8,8 +8,31 @@
         </div>
       </template>
       
-      <el-table :data="musicLists" style="width: 100%" v-loading="loading">
-        <el-table-column prop="title" label="歌单名称" />
+      <el-table 
+        :data="musicLists" 
+        style="width: 100%" 
+        v-loading="loading"
+        @row-click="handleRowClick"
+        class="clickable-rows"
+      >
+        <el-table-column label="歌单名称" min-width="200">
+          <template #default="scope">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <el-image 
+                style="width: 50px; height: 50px; border-radius: 4px; flex-shrink: 0;"
+                :src="getPlaylistCover(scope.row)" 
+                fit="cover"
+              >
+                <template #error>
+                  <div class="image-slot" style="background: #f5f7fa; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #909399;">
+                    <el-icon><Picture /></el-icon>
+                  </div>
+                </template>
+              </el-image>
+              <span>{{ scope.row.title }}</span>
+            </div>
+          </template>
+        </el-table-column>
         <el-table-column prop="description" label="简介" show-overflow-tooltip />
         <el-table-column prop="createTime" label="创建时间" width="180" />
         <el-table-column label="操作" width="200">
@@ -47,8 +70,10 @@
 
 <script setup>
 import { ref, onMounted, reactive } from 'vue'
-import { getMusicLists, createMusicList, deleteMusicList } from '@/api/musiclist'
+import { getMusicLists, createMusicList, deleteMusicList, getMusicListDetail } from '@/api/musiclist'
 import { ElMessage } from 'element-plus'
+import { Picture } from '@element-plus/icons-vue'
+import { getPlaylistCover } from '@/utils/music-utils'
 
 import { useRouter } from 'vue-router'
 
@@ -66,7 +91,21 @@ const fetchMusicLists = async () => {
   try {
     const res = await getMusicLists()
     if (Array.isArray(res)) {
-      musicLists.value = res
+      // 并发获取每个歌单的详情，以补充 musics 信息，用于封面展示
+      const detailedLists = await Promise.all(res.map(async (list) => {
+        try {
+          const detail = await getMusicListDetail(list.id)
+          return {
+            ...list,
+            musics: detail.musics || [],
+            cover: detail.cover || list.cover // 优先使用详情中的 cover
+          }
+        } catch (err) {
+          console.warn(`Failed to fetch detail for list ${list.id}`, err)
+          return list
+        }
+      }))
+      musicLists.value = detailedLists
     } else {
       musicLists.value = []
     }
@@ -105,6 +144,10 @@ const handleDetail = (row) => {
   router.push(`/musiclist/${row.id}`)
 }
 
+const handleRowClick = (row) => {
+  handleDetail(row)
+}
+
 const handleDelete = async (row) => {
   try {
     await deleteMusicList(row.id)
@@ -125,5 +168,9 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+:deep(.clickable-rows .el-table__row) {
+  cursor: pointer;
 }
 </style>

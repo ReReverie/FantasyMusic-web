@@ -51,6 +51,7 @@
         style="width: 100%" 
         v-loading="loading" 
         @selection-change="handleSelectionChange"
+        @row-dblclick="handleRowDblClick"
       >
         <el-table-column v-if="isBatchMode" type="selection" width="55" />
         <el-table-column label="标题" min-width="200">
@@ -182,6 +183,10 @@ const total = ref(0)
 
 const handleSelectionChange = (val) => {
   multipleSelection.value = val
+}
+
+const handleRowDblClick = (row) => {
+  playerStore.playMusic(row)
 }
 
 const handleBatchDelete = () => {
