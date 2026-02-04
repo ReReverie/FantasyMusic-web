@@ -292,6 +292,8 @@ const handleBatchDelete = () => {
       try {
         const ids = multipleSelection.value.map(item => item.id)
         await batchDeleteMusic(ids)
+        // 同步更新播放器状态，批量移除已删除的音乐
+        playerStore.batchRemoveMusic(ids)
         ElMessage.success('批量删除成功')
         fetchMusicList()
         // 清空选择并退出批量模式
@@ -497,6 +499,8 @@ const handleDownload = async (row) => {
 const handleDelete = async (row) => {
   try {
     await deleteMusic(row.id)
+    // 同步更新播放器状态，移除已删除的音乐
+    playerStore.removeMusic(row.id)
     ElMessage.success('删除成功')
     fetchMusicList()
   } catch (error) {

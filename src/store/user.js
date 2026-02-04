@@ -1,7 +1,6 @@
 import { defineStore } from 'pinia'
 import { login, logout, getUserInfo } from '@/api/user'
 import { encrypt } from '@/utils/jsencrypt'
-import { usePlayerStore } from './player'
 
 export const useUserStore = defineStore('user', {
   state: () => ({
@@ -64,10 +63,9 @@ export const useUserStore = defineStore('user', {
       return new Promise((resolve, reject) => {
         // 定义清除本地状态的函数
         const clearLocalState = () => {
-          // 1. 调用 Player Store 的重置方法 (确保在 User ID 清除前或后？)
-          // 最好在 User ID 清除前，或者 resetState 内部不依赖 ID
-          const playerStore = usePlayerStore()
-          playerStore.resetState()
+          // 1. 不需要手动调用 PlayerStore.resetState()
+          // 因为 PlayerStore 已经监听了 userStore.id 的变化，当 id 被置空时会自动重置状态。
+          // 这样可以避免两个 Store 之间的循环依赖 (Circular Dependency)。
 
           this.token = ''
           this.id = ''
