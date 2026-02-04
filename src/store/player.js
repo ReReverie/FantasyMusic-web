@@ -1,8 +1,11 @@
 import { defineStore } from 'pinia'
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import request from '@/utils/request'
+import { useUserStore } from '@/store/user'
 
 export const usePlayerStore = defineStore('player', () => {
+  const userStore = useUserStore()
+  
   // --- State ---
   const currentMusic = ref(null)
   const playlist = ref([])
@@ -16,12 +19,19 @@ export const usePlayerStore = defineStore('player', () => {
   // 是否显示播放列表
   const showPlaylist = ref(false)
 
+  // 计算当前的 Storage Key，基于 User ID
+  const storageKey = computed(() => {
+      // 如果未登录，使用 default；如果登录，使用 player-state-USERID
+      return userStore.id ? `player-state-${userStore.id}` : 'player-state-guest'
+  })
+
   // --- Actions ---
 
   // 初始化：从 localStorage 恢复状态
   const initFromStorage = () => {
     try {
-      const stored = localStorage.getItem('player-state')
+      const key = storageKey.value
+      const stored = localStorage.getItem(key)
       if (stored) {
         const data = JSON.parse(stored)
         // 恢复播放模式
@@ -35,6 +45,13 @@ export const usePlayerStore = defineStore('player', () => {
           currentMusic.value = data.currentMusic
           // 注意：audioUrl 需要重新请求获取，所以这里不恢复 isPlaying
         }
+      } else {
+          // 如果没有当前用户的记录，重置为默认 (除了音量可能保留全局？暂不考虑复杂情况)
+          // 重要的：防止复用上一个用户的内存状态
+          // 但 initFromStorage 通常在 App 启动或 Login 后调用。
+          // 如果是 Login 后调用，内存中可能还残留着 Guest 的数据，需要清空吗？
+          // 是的，init 应该不仅是 load，也隐含了 reset if not found 的意味？
+          // 或者由 logout 负责 clear。
       }
     } catch (e) {
       console.error('Failed to restore player state:', e)
@@ -43,14 +60,28 @@ export const usePlayerStore = defineStore('player', () => {
 
   // 持久化监听
   watch([currentMusic, playlist, playMode, volume], () => {
+    // 只有当有数据时才保存，避免覆盖为空？
+    // 不，空也是一种状态。
     const stateToSave = {
       currentMusic: currentMusic.value,
       playlist: playlist.value,
       playMode: playMode.value,
       volume: volume.value
     }
-    localStorage.setItem('player-state', JSON.stringify(stateToSave))
+    localStorage.setItem(storageKey.value, JSON.stringify(stateToSave))
   }, { deep: true })
+  
+  // 监听 User ID 变化 (登录/登出)
+  // 当用户 ID 变化时，重新加载对应的 Storage
+  watch(() => userStore.id, (newId, oldId) => {
+      if (newId !== oldId) {
+          // 调用重置方法清理内存状态
+          resetState()
+          
+          // 加载新用户的配置
+          initFromStorage()
+      }
+  })
 
   // 播放指定音乐
   const playMusic = async (music) => {
@@ -203,6 +234,24 @@ export const usePlayerStore = defineStore('player', () => {
     }
   }
 
+  // 清空/重置状态
+  const resetState = () => {
+    currentMusic.value = null
+    playlist.value = []
+    isPlaying.value = false
+    if (audioUrl.value) {
+      URL.revokeObjectURL(audioUrl.value)
+      audioUrl.value = ''
+    }
+    // 重置为默认偏好，确保数据隔离
+    volume.value = 50
+    playMode.value = 'sequence'
+    showPlaylist.value = false
+    
+    // 注意：这里只清理内存状态。持久化数据的隔离通过 computed storageKey 实现。
+    // 当 userStore.id 变化时，storageKey 自动切换，从而读写不同的 localStorage 键值。
+  }
+
   return {
     currentMusic,
     playlist,
@@ -217,6 +266,7 @@ export const usePlayerStore = defineStore('player', () => {
     togglePlay,
     togglePlayMode,
     playNext,
-    playPrev
+    playPrev,
+    resetState
   }
 })
