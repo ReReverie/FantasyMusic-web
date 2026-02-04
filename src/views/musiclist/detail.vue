@@ -357,11 +357,8 @@ const handleContextMenuRemove = () => {
 
 const handlePlayAll = () => {
   if (detail.value.musics && detail.value.musics.length > 0) {
-    // 播放第一首，并把整个列表加入播放队列（需要 playerStore 支持，目前先播放第一首）
-    // TODO: 完善 playerStore 支持 setPlaylist
-    playerStore.playMusic(detail.value.musics[0])
-    // 假设 playerStore 有 setPlaylist 方法，或者我们简单遍历添加
-    // playerStore.setPlaylist(detail.value.musics)
+    // 播放全部：设置整个列表为播放列表，并从第一首开始播放
+    playerStore.setPlaylist(detail.value.musics)
   } else {
     ElMessage.warning('歌单为空')
   }

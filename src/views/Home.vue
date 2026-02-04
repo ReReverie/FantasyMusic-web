@@ -48,7 +48,7 @@
         </div>
         <div class="stat-info">
           <div class="stat-value">{{ userStore.userLevelValue || '普通用户' }}</div>
-          <div class="stat-label">尊贵身份</div>
+          <div class="stat-label">用户等级</div>
         </div>
       </div>
     </div>
