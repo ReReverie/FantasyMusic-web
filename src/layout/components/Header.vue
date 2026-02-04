@@ -2,7 +2,12 @@
   <div class="navbar">
     <div class="left-menu">
       <el-breadcrumb separator="/">
-        <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
+        <el-breadcrumb-item :to="{ path: '/' }">
+          <div class="brand-breadcrumb">
+            <img :src="logo" class="brand-logo" />
+            <span class="brand-text">梦幻音乐平台</span>
+          </div>
+        </el-breadcrumb-item>
         <el-breadcrumb-item>{{ route.meta.title }}</el-breadcrumb-item>
       </el-breadcrumb>
     </div>
@@ -31,10 +36,12 @@
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
 import { ElMessage } from 'element-plus'
+import { ArrowDown } from '@element-plus/icons-vue'
 
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
+const logo = 'https://wpimg.wallstcn.com/69a1c46c-eb1c-4b46-8bd4-e9e686ef5251.png'
 
 const logout = async () => {
   await userStore.logout()
@@ -57,35 +64,51 @@ const logout = async () => {
   color: #fff;
 }
 
-.header-logo {
-  display: flex;
-  align-items: center;
-  margin-right: 40px;
-}
-
-.logo-img {
-  width: 30px;
-  height: 30px;
-  margin-right: 10px;
-}
-
-.app-title {
-  font-size: 18px;
-  font-weight: bold;
-  color: #fff;
-  white-space: nowrap;
-}
-
 .left-menu {
   flex: 1;
 }
 
+/* Brand Breadcrumb Styles */
+.brand-breadcrumb {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.brand-logo {
+  width: 24px;
+  height: 24px;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+.brand-text {
+  font-weight: bold;
+  font-size: 14px;
+  vertical-align: middle;
+  line-height: 1;
+}
+
 /* Breadcrumb styles for dark background */
+:deep(.el-breadcrumb) {
+  display: flex;
+  align-items: center;
+  line-height: 1;
+}
 :deep(.el-breadcrumb__inner) {
   color: #bfcbd9 !important;
+  display: flex !important; /* Ensure flex layout for inner content */
+  align-items: center !important;
 }
 :deep(.el-breadcrumb__inner.is-link) {
   color: #fff !important;
+}
+
+/* Ensure separator is vertically centered if needed */
+:deep(.el-breadcrumb__separator) {
+  color: #bfcbd9;
+  margin: 0 9px;
+  font-weight: bold;
 }
 
 .right-menu {

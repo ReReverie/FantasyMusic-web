@@ -3,7 +3,7 @@
     <transition name="sidebarLogoFade">
       <router-link key="expand" class="sidebar-logo-link" to="/">
         <img v-if="logo" :src="logo" class="sidebar-logo" />
-        <h1 class="sidebar-title">{{ title }}</h1>
+        <h1 v-if="!collapse" class="sidebar-title">{{ title }}</h1>
       </router-link>
     </transition>
   </div>
@@ -11,6 +11,13 @@
 
 <script setup>
 import { ref } from 'vue'
+
+defineProps({
+  collapse: {
+    type: Boolean,
+    required: true
+  }
+})
 
 const title = ref('梦幻音乐平台')
 const logo = ref('https://wpimg.wallstcn.com/69a1c46c-eb1c-4b46-8bd4-e9e686ef5251.png') // 暂时使用一个占位 Logo，或者使用 Element Plus 的 Icon

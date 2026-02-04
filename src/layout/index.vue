@@ -4,8 +4,17 @@
       <Header />
     </div>
     <div class="main-body">
-      <div class="sidebar-container">
-        <Sidebar />
+      <div 
+        class="sidebar-container" 
+        :class="{ 'is-collapsed': isCollapse }"
+        @mouseenter="handleMouseEnter"
+        @mouseleave="handleMouseLeave"
+      >
+        <Sidebar 
+          :is-collapse="isCollapse" 
+          :is-locked="isLocked"
+          @toggle-lock="toggleLock"
+        />
       </div>
       <div class="main-container">
         <el-scrollbar>
@@ -19,10 +28,31 @@
 </template>
 
 <script setup>
+import { ref, computed } from 'vue'
 import Header from './components/Header.vue'
 import Sidebar from './components/Sidebar.vue'
 import AppMain from './components/AppMain.vue'
 import FooterPlayer from './components/FooterPlayer.vue'
+
+// 侧边栏状态管理
+const isLocked = ref(true) // 默认锁定（展开）
+const isHover = ref(false)
+
+// 计算是否折叠：如果没有锁定且鼠标不在上面，则折叠
+const isCollapse = computed(() => !isLocked.value && !isHover.value)
+
+const handleMouseEnter = () => {
+  isHover.value = true
+}
+
+const handleMouseLeave = () => {
+  isHover.value = false
+}
+
+const toggleLock = () => {
+  isLocked.value = !isLocked.value
+  // 如果解锁，鼠标当前肯定在上面，所以 isHover 应该是 true，不会立即折叠
+}
 </script>
 
 <style scoped>
@@ -52,6 +82,13 @@ import FooterPlayer from './components/FooterPlayer.vue'
   background-color: #304156;
   flex-shrink: 0;
   height: 100%;
+  transition: width 0.3s ease-in-out;
+  overflow: hidden;
+  position: relative;
+}
+
+.sidebar-container.is-collapsed {
+  width: 64px;
 }
 
 .main-container {
