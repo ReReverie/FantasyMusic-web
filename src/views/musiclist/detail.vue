@@ -265,6 +265,12 @@ const confirmEdit = async () => {
     ElMessage.warning('请输入歌单名称')
     return
   }
+
+  // 封面 URL 验证
+  if (editForm.value.cover && !/^https?:\/\/.+/.test(editForm.value.cover)) {
+    ElMessage.error('封面链接必须以 http:// 或 https:// 开头')
+    return
+  }
   
   editLoading.value = true
   try {

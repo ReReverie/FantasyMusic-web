@@ -1,5 +1,17 @@
 <template>
-  <div class="footer-player glass-effect" v-if="playerStore.currentMusic || playerStore.playlist.length > 0">
+  <div 
+    class="footer-player glass-effect" 
+    :class="{ 'is-hidden': !isLocked && !isHover && !isTempShow }"
+    v-if="playerStore.currentMusic || playerStore.playlist.length > 0"
+    @mouseenter="isHover = true"
+    @mouseleave="isHover = false"
+  >
+    <!-- 锁定按钮 -->
+    <div class="lock-toggle" @click="isLocked = !isLocked" :title="isLocked ? '点击解锁自动隐藏' : '点击锁定播放器'">
+      <el-icon v-if="isLocked"><Lock /></el-icon>
+      <el-icon v-else><Unlock /></el-icon>
+    </div>
+
     <div class="player-content">
       <!-- 1. 封面 & 信息 -->
       <div class="music-meta">
@@ -144,7 +156,7 @@ import { ref, watch, onMounted, onUnmounted, computed } from 'vue'
 import { usePlayerStore } from '@/store/player'
 import { 
     Headset, VideoPlay, VideoPause, ArrowLeft, ArrowRight, 
-    Refresh, RefreshRight, Sort, Operation, List
+    Refresh, RefreshRight, Sort, Operation, List, Lock, Unlock
 } from '@element-plus/icons-vue'
 import { getCoverUrl } from '@/utils/music-utils'
 import { ElMessage } from 'element-plus'
@@ -153,6 +165,11 @@ const playerStore = usePlayerStore()
 const audioRef = ref(null)
 const playlistDrawerRef = ref(null)
 const playlistBtnRef = ref(null)
+
+const isLocked = ref(true)
+const isHover = ref(false)
+const isTempShow = ref(false)
+let tempShowTimer = null
 
 const currentTime = ref(0)
 const duration = ref(0)
@@ -324,6 +341,22 @@ const togglePlaylist = () => {
     playerStore.showPlaylist = !playerStore.showPlaylist
 }
 
+const triggerTempShow = () => {
+    // 只有在未锁定（即处于自动隐藏模式）时才需要临时显示
+    if (!isLocked.value) {
+        isTempShow.value = true
+        if (tempShowTimer) clearTimeout(tempShowTimer)
+        tempShowTimer = setTimeout(() => {
+            isTempShow.value = false
+        }, 5000) // 停留 5 秒
+    }
+}
+
+// 监听歌曲变化，自动弹出
+watch(() => playerStore.currentMusic, (newVal) => {
+    if (newVal) triggerTempShow()
+})
+
 const playItem = (item) => {
     playerStore.playMusic(item)
 }
@@ -333,6 +366,7 @@ watch(() => playerStore.isPlaying, (newVal) => {
   if (audioRef.value) {
     if (newVal) {
       attemptPlay()
+      triggerTempShow() // 开始播放时自动弹出
     } else {
       audioRef.value.pause()
     }
@@ -389,7 +423,40 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   padding: 0 32px;
-  transition: all 0.3s ease;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.footer-player.is-hidden {
+  transform: translate(-50%, 120%);
+  opacity: 0.8;
+}
+
+/* 留一个小把手或顶部区域供鼠标悬停唤出 */
+.footer-player.is-hidden::before {
+  content: '';
+  position: absolute;
+  top: -20px;
+  left: 0;
+  width: 100%;
+  height: 20px;
+  background: transparent;
+}
+
+.lock-toggle {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  cursor: pointer;
+  color: #606266;
+  opacity: 0.6;
+  transition: all 0.3s;
+  z-index: 10;
+  padding: 4px;
+}
+
+.lock-toggle:hover {
+  opacity: 1;
+  color: #409EFF;
 }
 
 .player-content {

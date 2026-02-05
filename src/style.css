@@ -23,3 +23,47 @@ a {
 }
 
 /* Scrollbar styles override if needed, but Element Plus handles its own usually */
+
+/* Global rounded corners override */
+.el-card {
+  border-radius: 16px !important;
+  border: none !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+  overflow: hidden;
+}
+
+.el-dialog {
+  border-radius: 16px !important;
+  overflow: hidden;
+}
+
+.el-button {
+  border-radius: 8px !important;
+}
+
+.el-input__wrapper, .el-textarea__inner {
+  border-radius: 8px !important;
+}
+
+.el-select__wrapper {
+  border-radius: 8px !important;
+}
+
+.el-message-box {
+  border-radius: 16px !important;
+  overflow: hidden;
+}
+
+.el-notification {
+  border-radius: 12px !important;
+}
+
+.el-tag {
+  border-radius: 6px !important;
+}
+
+/* Ensure dialog header/footer respect border radius */
+.el-dialog__header {
+  margin-right: 0 !important;
+}
+

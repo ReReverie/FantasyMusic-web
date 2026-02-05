@@ -82,6 +82,12 @@ const handleUpdate = () => {
     return
   }
 
+  // 头像 URL 验证
+  if (userInfo.avatarUrl && !/^https?:\/\/.+/.test(userInfo.avatarUrl)) {
+    ElMessage.error('头像链接必须以 http:// 或 https:// 开头')
+    return
+  }
+
   loading.value = true
   // Construct the object to send
   const data = {

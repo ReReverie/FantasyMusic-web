@@ -1,14 +1,33 @@
 <template>
   <section class="app-main">
-    <router-view v-slot="{ Component }">
+    <router-view v-slot="{ Component, route }">
       <transition name="fade-transform" mode="out-in">
-        <component :is="Component" />
+        <keep-alive :include="cachedViews">
+          <component :is="Component" :key="route.path" />
+        </keep-alive>
       </transition>
     </router-view>
   </section>
 </template>
 
 <script setup>
+import { ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
+
+const route = useRoute()
+const cachedViews = ref([])
+
+watch(
+  () => route.path,
+  () => {
+    if (route.meta.keepAlive && route.name) {
+      if (!cachedViews.value.includes(route.name)) {
+        cachedViews.value.push(route.name)
+      }
+    }
+  },
+  { immediate: true }
+)
 </script>
 
 <style scoped>

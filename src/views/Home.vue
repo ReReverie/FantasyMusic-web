@@ -55,27 +55,27 @@
 
     <!-- 主要内容区域 -->
     <div class="main-content-grid">
-      <!-- 左侧：推荐歌单 -->
+      <!-- 左侧：我的歌单 -->
       <section class="section-block glass-panel">
         <div class="section-header">
           <div class="header-left">
-            <el-icon class="header-icon"><CollectionTag /></el-icon>
-            <h2>推荐歌单</h2>
+            <el-icon class="header-icon"><Collection /></el-icon>
+            <h2>我的歌单</h2>
           </div>
-          <button class="text-btn" @click="$router.push('/musiclist')">查看全部 <el-icon><ArrowRight /></el-icon></button>
+          <button class="text-btn" @click="$router.push('/musiclist')">更多 <el-icon><ArrowRight /></el-icon></button>
         </div>
-        
+
         <div class="playlist-grid" v-if="playlists.length > 0">
           <div class="playlist-card" v-for="list in playlists" :key="list.id" @click="$router.push(`/musiclist/${list.id}`)">
-            <div class="image-wrapper">
-              <el-image :src="getPlaylistCover(list)" fit="cover" loading="lazy">
+            <div class="playlist-cover">
+              <el-image :src="getPlaylistCover(list)" fit="cover" lazy>
                 <template #error>
-                  <div class="image-placeholder">
+                  <div class="image-slot">
                     <el-icon><Picture /></el-icon>
                   </div>
                 </template>
               </el-image>
-              <div class="hover-play">
+              <div class="play-overlay">
                 <el-icon><VideoPlay /></el-icon>
               </div>
             </div>
@@ -85,7 +85,7 @@
             </div>
           </div>
         </div>
-        <el-empty v-else description="暂无推荐歌单" :image-size="100" />
+        <el-empty v-else description="暂无歌单" :image-size="100" />
       </section>
       
       <!-- 右侧：最新音乐 -->
@@ -134,6 +134,12 @@
     </div>
   </div>
 </template>
+
+<script>
+export default {
+  name: 'Home'
+}
+</script>
 
 <script setup>
 import { ref, onMounted } from 'vue'
@@ -186,6 +192,9 @@ $primary-color: #667eea;
   position: relative;
   overflow: hidden;
   font-family: 'PingFang SC', 'Helvetica Neue', Helvetica, 'Hiragino Sans GB', 'Microsoft YaHei', Arial, sans-serif;
+  border-radius: 16px;
+  background-color: #fff; /* Ensure it looks like a card */
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 }
 
 /* 动态背景球 */
