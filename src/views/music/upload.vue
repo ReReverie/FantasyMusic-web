@@ -60,18 +60,30 @@
             <template #default="{ row }">
               <el-tag v-if="row.status === 'ready'" type="info">待上传</el-tag>
               <el-tag v-else-if="row.status === 'uploading'" type="primary">
-                上传中 <el-icon class="is-loading"><Loading /></el-icon>
+                <div class="status-content">
+                  <span>上传中</span>
+                  <el-icon class="is-loading"><Loading /></el-icon>
+                </div>
               </el-tag>
               <el-tag v-else-if="row.status === 'success'" type="success">成功</el-tag>
               <el-tag v-else-if="row.status === 'fail'" type="danger">失败</el-tag>
               <el-tag v-else-if="row.status === 'calculating'" type="warning">
-                计算Hash <el-icon class="is-loading"><Loading /></el-icon>
+                <div class="status-content">
+                  <span>计算Hash</span>
+                  <el-icon class="is-loading"><Loading /></el-icon>
+                </div>
               </el-tag>
             </template>
           </el-table-column>
           <el-table-column label="操作/结果" min-width="200">
             <template #default="{ row }">
-              <span v-if="row.status === 'fail'" class="error-msg">{{ row.errorMsg }}</span>
+              <el-tooltip 
+                v-if="row.status === 'fail'" 
+                :content="row.errorMsg" 
+                placement="top"
+              >
+                <span class="error-msg">{{ row.errorMsg }}</span>
+              </el-tooltip>
               <el-button 
                 v-if="row.status === 'fail'" 
                 link 
@@ -198,7 +210,8 @@ const processUpload = async (fileItem) => {
     formData.append('file', fileItem.raw)
     formData.append('hash', hash)
 
-    await uploadMusic(formData, { skipErrorMessage: true })
+    // 设置 10 分钟超时，防止大文件上传中断
+    await uploadMusic(formData, { skipErrorMessage: true, timeout: 600000 })
     fileItem.status = 'success'
     fileItem.errorMsg = ''
   } catch (error) {
@@ -293,6 +306,18 @@ const retryUpload = async (file) => {
     color: #f56c6c;
     font-size: 12px;
     margin-right: 10px;
+    display: inline-block;
+    max-width: 150px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: middle;
+  }
+
+  .status-content {
+    display: flex;
+    align-items: center;
+    gap: 4px;
   }
 }
 </style>
