@@ -42,6 +42,7 @@ service.interceptors.response.use(
               duration: 5 * 1000
             })
             const err = new Error(res.msg || 'Error')
+            err.code = res.code
             err.isHandled = true
             return Promise.reject(err)
           }
@@ -71,6 +72,7 @@ service.interceptors.response.use(
         })
       }
       const err = new Error(res.msg || 'Error')
+      err.code = res.code
       err.isHandled = true
       return Promise.reject(err)
     } else {

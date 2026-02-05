@@ -85,9 +85,6 @@ const toggleLock = () => {
   transition: width 0.3s ease-in-out;
   overflow: hidden;
   position: relative;
-  border-top-right-radius: 16px;
-  border-bottom-right-radius: 16px;
-  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
 }
 
 .sidebar-container.is-collapsed {

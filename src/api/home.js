@@ -28,6 +28,10 @@ export function getHomeData() {
     const validPlaylists = Array.isArray(playlists) ? playlists : []
     const validMusicList = Array.isArray(musicList) ? musicList : []
 
+    // 确保按 ID 倒序排列（ID 越大表示上传越晚/越新）
+    // 即使后端没有正确排序，前端这里强制重排也能保证展示的是最新的音乐
+    validMusicList.sort((a, b) => b.id - a.id)
+
     // 获取所有歌单的详细信息，以便计算收藏歌曲总数和正确显示封面
     const detailedPlaylists = await Promise.all(
       validPlaylists.map(async (playlist) => {

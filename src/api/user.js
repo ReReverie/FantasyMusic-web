@@ -45,3 +45,18 @@ export function updatePassword(data) {
     data
   })
 }
+
+export function getCaptcha() {
+  return request({
+    url: '/auth/captcha',
+    method: 'get'
+  })
+}
+
+export function sendEmailCode(email) {
+  return request({
+    url: '/auth/email-code',
+    method: 'post',
+    params: { email }
+  })
+}

@@ -15,7 +15,7 @@ export const useUserStore = defineStore('user', {
   }),
   actions: {
     login(userInfo) {
-      const { username, password } = userInfo
+      const { username, password, captchaCode, captchaUuid } = userInfo
       return new Promise((resolve, reject) => {
         // RSA Encryption
         const encryptedPassword = encrypt(password)
@@ -24,7 +24,12 @@ export const useUserStore = defineStore('user', {
           return
         }
         
-        login({ username: username.trim(), password: encryptedPassword }).then(response => {
+        login({ 
+          username: username.trim(), 
+          password: encryptedPassword,
+          captchaCode,
+          captchaUuid
+        }).then(response => {
           // data = { id, nickname, token }
           const data = response
           this.token = data.token

@@ -76,7 +76,7 @@
       <!-- 歌曲列表 -->
       <el-table 
         :key="isBatchMode"
-        :data="Array.isArray(detail.musics) ? detail.musics : []" 
+        :data="tableData" 
         style="width: 100%;" 
         v-loading="loading"
         @selection-change="handleSelectionChange"
@@ -194,6 +194,7 @@ const playerStore = usePlayerStore()
 const searchQuery = ref('')
 const loading = ref(false)
 const detail = ref({})
+const tableData = ref([])
 
 const editDialogVisible = ref(false)
 const editLoading = ref(false)
@@ -294,6 +295,12 @@ const fetchDetail = async () => {
   try {
     const res = await getMusicListDetail(id)
     detail.value = res
+    // 初始化表格数据为歌单所有歌曲
+    tableData.value = Array.isArray(res.musics) ? res.musics : []
+    // 如果搜索框有值，重新执行搜索 (处理批量删除后刷新列表的情况)
+    if (searchQuery.value) {
+      handleSearch()
+    }
   } catch (error) {
     console.error(error)
     ElMessage.error('获取歌单详情失败')
@@ -362,9 +369,9 @@ const handleContextMenuRemove = () => {
 }
 
 const handlePlayAll = () => {
-  if (detail.value.musics && detail.value.musics.length > 0) {
+  if (tableData.value && tableData.value.length > 0) {
     // 播放全部：设置整个列表为播放列表，并从第一首开始播放
-    playerStore.setPlaylist(detail.value.musics)
+    playerStore.setPlaylist(tableData.value)
   } else {
     ElMessage.warning('歌单为空')
   }
@@ -372,7 +379,8 @@ const handlePlayAll = () => {
 
 const handleSearch = async () => {
   if (!searchQuery.value) {
-    fetchDetail()
+    // 如果清空搜索框，恢复显示所有歌曲
+    tableData.value = detail.value.musics || []
     return
   }
 
@@ -386,7 +394,7 @@ const handleSearch = async () => {
       keyword: searchQuery.value
     })
     console.log('Search response:', res)
-    // 搜索接口只返回歌曲列表，我们需要更新 detail 中的 musics
+    // 搜索接口只返回歌曲列表，我们需要更新 tableData
     if (detail.value) {
       // 确保 res 是数组，如果是对象则尝试取其 list 属性或 records 属性，否则设为空数组
       let musicList = []
@@ -402,7 +410,7 @@ const handleSearch = async () => {
          musicList = res.data
       }
       
-      detail.value.musics = musicList
+      tableData.value = musicList
     }
   } catch (error) {
     console.error('Search error:', error)
