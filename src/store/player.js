@@ -130,7 +130,19 @@ export const usePlayerStore = defineStore('player', () => {
         playMusic(playlist.value[0])
         return
     }
-    isPlaying.value = !isPlaying.value
+
+    if (currentMusic.value) {
+      if (isPlaying.value) {
+        isPlaying.value = false
+      } else {
+        // 如果没有 audioUrl (例如刷新页面后)，重新获取链接
+        if (!audioUrl.value) {
+          playMusic(currentMusic.value)
+        } else {
+          isPlaying.value = true
+        }
+      }
+    }
   }
 
   // 切换播放模式

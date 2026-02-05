@@ -35,7 +35,7 @@ import AppMain from './components/AppMain.vue'
 import FooterPlayer from './components/FooterPlayer.vue'
 
 // 侧边栏状态管理
-const isLocked = ref(true) // 默认锁定（展开）
+const isLocked = ref(false) // 默认不锁定（自动隐藏）
 const isHover = ref(false)
 
 // 计算是否折叠：如果没有锁定且鼠标不在上面，则折叠
