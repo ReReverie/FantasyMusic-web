@@ -85,6 +85,7 @@ export function downloadMusic(id) {
   return request({
     url: `/music/download/${id}`,
     method: 'get',
-    responseType: 'blob'
+    // 移除 responseType: 'blob' 以支持返回 URL 字符串
+    // responseType: 'blob'
   })
 }

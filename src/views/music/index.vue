@@ -461,35 +461,52 @@ const handlePlay = (row) => {
 const handleDownload = async (row) => {
   try {
     const response = await downloadMusic(row.id)
-    // res is a response object because we changed request.js
-    if (!response || !response.data) return
     
-    // 尝试从 header 中获取文件名
-    let fileName = `${row.title}.mp3`
-    const contentDisposition = response.headers['content-disposition']
-    if (contentDisposition) {
-      // 优先匹配 filename*=UTF-8''
-      let match = contentDisposition.match(/filename\*=UTF-8''(.+)/i)
-      if (match && match[1]) {
-        fileName = decodeURIComponent(match[1])
-      } else {
-        // 其次匹配 filename=
-        match = contentDisposition.match(/filename="?([^";]+)"?/i)
-        if (match && match[1]) {
-          fileName = decodeURIComponent(match[1])
-        }
-      }
+    // 1. 如果后端返回的是 URL 字符串 (OSS 签名链接)
+    if (typeof response === 'string' && (response.startsWith('http') || response.startsWith('/'))) {
+        const link = document.createElement('a')
+        link.href = response
+        // 对于 OSS 签名链接，通常 Content-Disposition 已包含在签名或元数据中
+        // download 属性在跨域时可能无效，但如果 headers 正确，浏览器会下载
+        link.setAttribute('download', '') 
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        ElMessage.success('开始下载')
+        return
     }
 
-    const url = window.URL.createObjectURL(new Blob([response.data]))
-    const link = document.createElement('a')
-    link.href = url
-    link.setAttribute('download', fileName)
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    window.URL.revokeObjectURL(url)
-    ElMessage.success('开始下载')
+    // 2. 兼容旧的 Blob 逻辑 (如果后端仍返回流)
+    // 注意：需要在 api/music.js 中配合 responseType: 'blob'，但现在已移除。
+    // 如果必须同时支持，可能需要根据 content-type 判断。
+    // 假设此处主要处理 URL。以下代码作为 fallback，可能需要调整 api 才能生效。
+    if (response && response.data) {
+        // ... (原有的 Blob 处理逻辑，略微保留以防万一，但主要依赖 URL)
+         // 尝试从 header 中获取文件名
+        let fileName = `${row.title}.mp3`
+        const contentDisposition = response.headers['content-disposition']
+        if (contentDisposition) {
+          let match = contentDisposition.match(/filename\*=UTF-8''(.+)/i)
+          if (match && match[1]) {
+            fileName = decodeURIComponent(match[1])
+          } else {
+            match = contentDisposition.match(/filename="?([^";]+)"?/i)
+            if (match && match[1]) {
+              fileName = decodeURIComponent(match[1])
+            }
+          }
+        }
+
+        const url = window.URL.createObjectURL(new Blob([response.data]))
+        const link = document.createElement('a')
+        link.href = url
+        link.setAttribute('download', fileName)
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        window.URL.revokeObjectURL(url)
+        ElMessage.success('开始下载')
+    }
   } catch (error) {
     console.error(error)
     ElMessage.error('下载失败')

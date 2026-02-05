@@ -54,6 +54,11 @@ service.interceptors.response.use(
 
     const res = response.data
     
+    // 特殊处理：如果后端直接返回 URL 字符串 (例如 OSS 签名链接)，视为成功
+    if (typeof res === 'string' && (res.startsWith('http://') || res.startsWith('https://'))) {
+      return res
+    }
+
     // 根据后端约定的状态码判断
     // 假设 code === 1 为成功
     if (res.code !== 1) {

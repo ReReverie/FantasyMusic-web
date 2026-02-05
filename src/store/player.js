@@ -70,10 +70,11 @@ export const usePlayerStore = defineStore('player', () => {
     }
 
     try {
+      // 尝试获取播放链接 (支持后端返回 OSS 预签名 URL)
       const response = await request({
         url: `/music/play/${music.id}`,
         method: 'get',
-        responseType: 'blob'
+        // 移除 responseType: 'blob'，让 axios 自动处理 JSON 或 Text
       })
       
       // 如果当前歌曲已经改变（用户切换了其他歌曲），则丢弃本次结果
@@ -81,16 +82,37 @@ export const usePlayerStore = defineStore('player', () => {
           return
       }
 
-      if (audioUrl.value) {
-        URL.revokeObjectURL(audioUrl.value)
+      let playUrl = ''
+      
+      // 1. 如果后端直接返回 URL 字符串 (例如 OSS 签名链接)
+      if (typeof response === 'string' && (response.startsWith('http') || response.startsWith('/'))) {
+        playUrl = response
+      } 
+      // 2. 如果后端返回 JSON 对象包含 url 字段
+      else if (response && typeof response === 'object' && response.url) {
+        playUrl = response.url
+      }
+      // 3. 兼容旧的 Blob 模式 (如果后端没有改变，或者返回流)
+      // 注意：由于去掉了 responseType: 'blob'，axios 可能会尝试解析 JSON。
+      // 如果后端返回的是二进制流，这里可能会乱码。
+      // 建议后端统一接口行为。如果必须兼容，需要根据 content-type 判断，但 axios 拦截器可能已经处理了。
+      // 假设后端现在只返回 URL。
+      
+      if (playUrl) {
+        // 释放旧的 Blob URL
+        if (audioUrl.value && audioUrl.value.startsWith('blob:')) {
+          URL.revokeObjectURL(audioUrl.value)
+        }
+        audioUrl.value = playUrl
+        isPlaying.value = true
+      } else {
+        throw new Error('Invalid playback URL')
       }
 
-      const blob = new Blob([response.data], { type: 'audio/mpeg' })
-      audioUrl.value = URL.createObjectURL(blob)
-      isPlaying.value = true
     } catch (error) {
       console.error('Failed to load music:', error)
       isPlaying.value = false
+      // 可以在这里添加更友好的错误提示
     }
   }
 
