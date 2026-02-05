@@ -190,16 +190,30 @@ const handleLogin = () => {
       }).catch((error) => {
         console.error('Login failed:', error)
         
-        // Check for Captcha Required error (e.g., code 423 or specific message)
-        if (error.code === 423 || error.message.includes('验证码')) {
+        // Check for Captcha Required error (code 423)
+        // 只有在后端明确返回 423 时，才认为是需要弹出验证码
+        if (error.code === 423) {
            showCaptcha.value = true
            refreshCaptcha()
            // If we just showed captcha, clear the password? Maybe not.
            loginForm.captchaCode = ''
-           ElMessage.warning('请输入验证码')
-        } else if (error.message && !error.isHandled) {
-             // Handle client-side errors (like encryption failure)
-             ElMessage.error(error.message)
+           // 只有当验证码框尚未显示时，才提示用户输入
+           if (!showCaptcha.value) {
+               ElMessage.warning(error.message || '请输入验证码')
+           }
+        } else {
+             // 其他错误（如密码错、验证码错等）
+             
+             // 如果已经显示了验证码，但是登录失败，强制刷新验证码
+             if (showCaptcha.value) {
+               refreshCaptcha()
+               loginForm.captchaCode = ''
+             }
+
+             if (error.message && !error.isHandled) {
+                // 显示后端返回的具体错误信息（如“验证码错误”）
+                ElMessage.error(error.message)
+             }
         }
         loading.value = false
       })
