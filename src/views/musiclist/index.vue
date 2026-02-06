@@ -8,13 +8,45 @@
         </div>
       </template>
       
+      <!-- Mobile Card List View -->
+      <div class="mobile-playlist-list" v-if="musicLists.length > 0">
+        <div class="playlist-card" v-for="list in musicLists" :key="list.id" @click="handleRowClick(list)">
+          <div class="card-left">
+            <el-image 
+              class="card-cover"
+              :src="getPlaylistCover(list)" 
+              fit="cover"
+            >
+              <template #error>
+                <div class="card-cover-placeholder">
+                  <el-icon><Picture /></el-icon>
+                </div>
+              </template>
+            </el-image>
+          </div>
+          <div class="card-center">
+            <div class="card-title">{{ list.title }}</div>
+            <div class="card-desc">{{ list.description || '暂无简介' }}</div>
+            <div class="card-meta">{{ formatDate(list.createTime) }}</div>
+          </div>
+          <div class="card-right" @click.stop>
+            <el-button size="small" circle :icon="View" @click="handleDetail(list)" />
+            <el-popconfirm title="确定要删除这个歌单吗？" @confirm="handleDelete(list)">
+              <template #reference>
+                <el-button size="small" type="danger" circle :icon="Delete" style="margin-left: 8px" />
+              </template>
+            </el-popconfirm>
+          </div>
+        </div>
+      </div>
+
       <el-table 
+        class="desktop-table clickable-rows"
         :data="musicLists" 
         style="width: 100%" 
         v-loading="loading"
         @row-click="handleRowClick"
         @row-contextmenu="handleContextMenu"
-        class="clickable-rows"
       >
         <el-table-column label="歌单名称" min-width="200">
           <template #default="scope">
@@ -34,20 +66,22 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="description" label="简介" show-overflow-tooltip />
-        <el-table-column prop="createTime" label="创建时间" width="180">
+        <el-table-column prop="description" label="简介" show-overflow-tooltip class-name="hidden-mobile" />
+        <el-table-column prop="createTime" label="创建时间" width="180" class-name="hidden-mobile">
           <template #default="scope">
             {{ formatDate(scope.row.createTime) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="200">
+        <el-table-column label="操作" width="200" class-name="actions-column">
           <template #default="scope">
-            <el-button size="small" @click="handleDetail(scope.row)">查看</el-button>
-            <el-popconfirm title="确定要删除这个歌单吗？" @confirm="handleDelete(scope.row)">
-              <template #reference>
-                <el-button size="small" type="danger">删除</el-button>
-              </template>
-            </el-popconfirm>
+            <div class="actions-wrapper">
+              <el-button size="small" circle :icon="View" @click="handleDetail(scope.row)" title="查看" />
+              <el-popconfirm title="确定要删除这个歌单吗？" @confirm="handleDelete(scope.row)">
+                <template #reference>
+                  <el-button size="small" type="danger" circle :icon="Delete" title="删除" />
+                </template>
+              </el-popconfirm>
+            </div>
           </template>
         </el-table-column>
       </el-table>
@@ -237,6 +271,18 @@ onUnmounted(() => {
   align-items: center;
 }
 
+@media screen and (max-width: 768px) {
+  .card-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  
+  .card-header .el-button {
+    width: 100%;
+  }
+}
+
 :deep(.clickable-rows .el-table__row) {
   cursor: pointer;
 }
@@ -244,31 +290,123 @@ onUnmounted(() => {
 .context-menu {
   position: fixed;
   z-index: 9999;
-  background-color: #fff;
+  background-color: var(--card-bg);
+  backdrop-filter: blur(10px);
   border-radius: 4px;
   box-shadow: 0 2px 12px 0 rgba(0,0,0,0.1);
   padding: 5px 0;
   min-width: 120px;
-  border: 1px solid #e4e7ed;
+  border: 1px solid var(--glass-border);
 }
 
 .menu-item {
   padding: 10px 16px;
   cursor: pointer;
   font-size: 14px;
-  color: #606266;
+  color: var(--text-main);
   transition: background-color 0.2s;
   display: flex;
   align-items: center;
 }
 
 .menu-item:hover {
-  background-color: #f5f7fa;
-  color: #409EFF;
+  background-color: var(--menu-hover-bg);
+  color: var(--primary-color);
 }
 
 .menu-item.delete:hover {
   background-color: #fef0f0;
   color: #f56c6c;
+}
+
+/* Mobile Card List Styles */
+.mobile-playlist-list {
+  display: none;
+}
+
+.desktop-table {
+  display: block;
+}
+
+@media screen and (max-width: 768px) {
+  .desktop-table {
+    display: none !important;
+  }
+  
+  .mobile-playlist-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .playlist-card {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    background: var(--card-bg);
+    border-radius: 12px;
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+    color: var(--text-main);
+  }
+  
+  .card-left {
+    flex-shrink: 0;
+    margin-right: 12px;
+  }
+  
+  .card-cover {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    display: block;
+  }
+  
+  .card-cover-placeholder {
+    width: 100%;
+    height: 100%;
+    background: var(--table-hover-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-placeholder);
+  }
+  
+  .card-center {
+    flex: 1;
+    overflow: hidden;
+    margin-right: 12px;
+  }
+  
+  .card-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-main);
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .card-desc {
+    font-size: 12px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 4px;
+  }
+  
+  .card-meta {
+    font-size: 12px;
+    color: var(--text-placeholder);
+  }
+  
+  .card-right {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+  }
 }
 </style>

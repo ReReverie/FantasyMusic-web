@@ -1,12 +1,19 @@
 <template>
   <div class="app-wrapper">
+    <!-- Mobile Sidebar Overlay -->
+    <div 
+      class="sidebar-overlay" 
+      :class="{ 'show': showMobileSidebar }"
+      @click="showMobileSidebar = false"
+    ></div>
+
     <div class="top-header">
-      <Header />
+      <Header @toggle-sidebar="toggleSidebar" />
     </div>
     <div class="main-body">
       <div 
         class="sidebar-container" 
-        :class="{ 'is-collapsed': isCollapse }"
+        :class="{ 'is-collapsed': isCollapse, 'mobile-open': showMobileSidebar }"
         @mouseenter="handleMouseEnter"
         @mouseleave="handleMouseLeave"
       >
@@ -37,9 +44,13 @@ import FooterPlayer from './components/FooterPlayer.vue'
 // 侧边栏状态管理
 const isLocked = ref(false) // 默认不锁定（自动隐藏）
 const isHover = ref(false)
+const showMobileSidebar = ref(false)
 
 // 计算是否折叠：如果没有锁定且鼠标不在上面，则折叠
-const isCollapse = computed(() => !isLocked.value && !isHover.value)
+const isCollapse = computed(() => {
+  if (showMobileSidebar.value) return false // Mobile drawer always expanded
+  return !isLocked.value && !isHover.value
+})
 
 const handleMouseEnter = () => {
   isHover.value = true
@@ -52,6 +63,10 @@ const handleMouseLeave = () => {
 const toggleLock = () => {
   isLocked.value = !isLocked.value
   // 如果解锁，鼠标当前肯定在上面，所以 isHover 应该是 true，不会立即折叠
+}
+
+const toggleSidebar = () => {
+  showMobileSidebar.value = !showMobileSidebar.value
 }
 </script>
 
@@ -79,7 +94,10 @@ const toggleLock = () => {
 
 .sidebar-container {
   width: 200px;
-  background-color: #304156;
+  background-color: var(--sidebar-bg);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-right: 1px solid var(--glass-border);
   flex-shrink: 0;
   height: 100%;
   transition: width 0.3s ease-in-out;
@@ -93,7 +111,7 @@ const toggleLock = () => {
 
 .main-container {
   flex: 1;
-  background-color: #f0f2f5;
+  background-color: transparent;
   height: 100%;
   box-sizing: border-box;
 }

@@ -1,13 +1,29 @@
 <template>
-  <div 
-    class="footer-player glass-effect" 
-    :class="{ 'is-hidden': !isLocked && !isHover && !isTempShow }"
-    v-if="playerStore.currentMusic || playerStore.playlist.length > 0"
-    @mouseenter="isHover = true"
-    @mouseleave="isHover = false"
-  >
-    <!-- 锁定按钮 -->
-    <div class="lock-toggle" @click="isLocked = !isLocked" :title="isLocked ? '点击解锁自动隐藏' : '点击锁定播放器'">
+  <div class="footer-player-wrapper">
+    <!-- 移动端呼出按钮 (Moved outside the hidden player container) -->
+    <div 
+      class="mobile-toggle-btn glass-effect" 
+      v-if="isMobile && mobileHidden && hasMusic"
+      @click.stop="showMobilePlayer"
+    >
+      <el-icon class="pulse-icon"><Headset /></el-icon>
+    </div>
+
+    <div 
+      class="footer-player glass-effect" 
+      ref="footerPlayerRef"
+      :class="{ 
+        'is-hidden': !isMobile && !isLocked && pcAutoHidden,
+        'mobile-hidden': isMobile && mobileHidden
+      }"
+      v-if="hasMusic"
+      @mouseenter="handlePCMouseEnter"
+      @mouseleave="handlePCMouseLeave"
+      @touchstart="handleMobileInteraction"
+      @click="handleMobileInteraction"
+    >
+      <!-- 锁定按钮 -->
+      <div class="lock-toggle" @click="isLocked = !isLocked" :title="isLocked ? '点击解锁自动隐藏' : '点击锁定播放器'">
       <el-icon v-if="isLocked"><Lock /></el-icon>
       <el-icon v-else><Unlock /></el-icon>
     </div>
@@ -36,13 +52,13 @@
       <!-- 2. 播放控制器 (居中) -->
       <div class="player-controls-container">
         <div class="controls-buttons">
-          <el-tooltip content="上一首" placement="top" :show-after="500">
+          <el-tooltip content="上一首" placement="top" :show-after="500" :disabled="isMobile">
             <el-button link class="control-btn" @click="playerStore.playPrev">
               <el-icon :size="24"><ArrowLeft /></el-icon>
             </el-button>
           </el-tooltip>
 
-          <el-tooltip :content="playerStore.isPlaying ? '暂停' : '播放'" placement="top" :show-after="500">
+          <el-tooltip :content="playerStore.isPlaying ? '暂停' : '播放'" placement="top" :show-after="500" :disabled="isMobile">
             <el-button link class="control-btn play-btn" @click="playerStore.togglePlay">
               <el-icon :size="40">
                 <VideoPause v-if="playerStore.isPlaying" />
@@ -51,7 +67,7 @@
             </el-button>
           </el-tooltip>
 
-          <el-tooltip content="下一首" placement="top" :show-after="500">
+          <el-tooltip content="下一首" placement="top" :show-after="500" :disabled="isMobile">
             <el-button link class="control-btn" @click="playerStore.playNext()">
               <el-icon :size="24"><ArrowRight /></el-icon>
             </el-button>
@@ -76,7 +92,7 @@
       <!-- 3. 右侧控制 (音量, 模式, 列表) -->
       <div class="right-controls">
         <!-- 播放模式 -->
-        <el-tooltip :content="modeText" placement="top" :show-after="500">
+        <el-tooltip :content="modeText" placement="top" :show-after="500" :disabled="isMobile">
             <el-button link class="control-btn" @click="playerStore.togglePlayMode">
                 <el-icon :size="20">
                     <Sort v-if="playerStore.playMode === 'sequence'" /> <!-- 顺序 -->
@@ -88,7 +104,7 @@
         </el-tooltip>
 
         <!-- 音量 -->
-        <div class="volume-control">
+        <div class="volume-control" v-if="!isMobile">
             <el-icon :size="20">
                 <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" width="200" height="200"><path fill="currentColor" d="M495.2 163.6c-9.6-9-24.8-8.4-33.8 1.2L271 368H136c-17.7 0-32 14.3-32 32v224c0 17.7 14.3 32 32 32h135l190.4 203.2c9 9.6 24.2 10.2 33.8 1.2 5.2-4.8 8-11.4 8-18.2V182c0-6.8-2.8-13.4-8-18.4zM808 512c0-68.2-34.8-129-88-164.6-11.4-7.6-26.6-4.6-34.2 6.8-7.6 11.4-4.6 26.6 6.8 34.2 38.6 25.8 63.4 69.8 63.4 123.6s-24.8 97.8-63.4 123.6c-11.4 7.6-14.4 22.8-6.8 34.2 5 7.6 13.4 11.4 21.8 11.4 5.2 0 10.4-1.6 14.8-4.6 53.2-35.6 88-96.4 88-164.6z"></path><path fill="currentColor" d="M856 254.8c-11.4-7.6-26.8-4.4-34.4 7-7.6 11.4-4.4 26.8 7 34.4C887 335.2 928 419.4 928 512s-41 176.8-99.4 215.8c-11.4 7.6-14.6 23-7 34.4 5.2 7.8 13.6 11.8 22.2 11.8 5 0 10-1.4 14.6-4.4C932.2 717 984 619.4 984 512s-51.8-205-128-257.2z"></path></svg>
             </el-icon>
@@ -96,7 +112,7 @@
         </div>
 
         <!-- 播放列表按钮 -->
-        <el-tooltip content="播放列表" placement="top" :show-after="500">
+        <el-tooltip content="播放列表" placement="top" :show-after="500" :disabled="isMobile">
             <el-button ref="playlistBtnRef" link class="control-btn" @click="togglePlaylist">
                 <el-icon :size="20"><List /></el-icon>
             </el-button>
@@ -149,6 +165,7 @@
         </div>
       </transition>
     </div>
+  </div>
 </template>
 
 <script setup>
@@ -165,25 +182,104 @@ const playerStore = usePlayerStore()
 const audioRef = ref(null)
 const playlistDrawerRef = ref(null)
 const playlistBtnRef = ref(null)
+const footerPlayerRef = ref(null)
+
+const hasMusic = computed(() => playerStore.currentMusic || playerStore.playlist.length > 0)
 
 const isLocked = ref(true)
 const isHover = ref(false)
-const isTempShow = ref(false)
-let tempShowTimer = null
+
+// PC Auto-hide Logic
+const pcAutoHidden = ref(false)
+let pcHideTimer = null
+
+const startPCHideTimer = () => {
+  if (pcHideTimer) clearTimeout(pcHideTimer)
+  pcHideTimer = setTimeout(() => {
+    pcAutoHidden.value = true
+  }, 3000)
+}
+
+const cancelPCHideTimer = () => {
+  if (pcHideTimer) clearTimeout(pcHideTimer)
+}
+
+const handlePCMouseEnter = () => {
+  isHover.value = true
+  pcAutoHidden.value = false
+  cancelPCHideTimer()
+}
+
+const handlePCMouseLeave = () => {
+  isHover.value = false
+  startPCHideTimer()
+}
+
+// Mobile Auto-hide Logic
+const isMobile = ref(false)
+const mobileHidden = ref(false)
+let mobileHideTimer = null
+
+const checkMobile = () => {
+  isMobile.value = window.innerWidth <= 768
+  if (!isMobile.value) {
+    mobileHidden.value = false // Reset if switched to desktop
+  } else {
+    // If switching to mobile, hide by default immediately
+    mobileHidden.value = true
+  }
+}
+
+const resetMobileHideTimer = () => {
+  if (!isMobile.value) return
+  
+  if (mobileHideTimer) clearTimeout(mobileHideTimer)
+  mobileHideTimer = setTimeout(() => {
+    mobileHidden.value = true
+  }, 3000)
+}
+
+const handleMobileInteraction = () => {
+  if (!isMobile.value) return
+  // mobileHidden.value = false // Already shown if we are interacting with it
+  resetMobileHideTimer()
+}
+
+const showMobilePlayer = () => {
+  mobileHidden.value = false
+  resetMobileHideTimer()
+}
+
+
+
+onMounted(() => {
+  checkMobile()
+  window.addEventListener('resize', checkMobile)
+  document.addEventListener('click', handleClickOutside)
+
+  // Initialize timer on mount if mobile
+  if (isMobile.value) {
+    resetMobileHideTimer()
+  }
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', checkMobile)
+  document.removeEventListener('click', handleClickOutside)
+  if (mobileHideTimer) clearTimeout(mobileHideTimer)
+})
 
 const currentTime = ref(0)
 const duration = ref(0)
 const isDragging = ref(false)
 
 const handleClickOutside = (event) => {
+    // Playlist logic
     if (playerStore.showPlaylist) {
         // Check if click is inside the drawer
         const isInsideDrawer = playlistDrawerRef.value && playlistDrawerRef.value.contains(event.target)
         
         // Check if click is on the toggle button (or its children)
-        // Note: Element Plus button ref exposes the component instance. The DOM element is $el.
-        // But if we used ref on native button it would be the element.
-        // Let's check both possibilities safely.
         let isButton = false
         if (playlistBtnRef.value) {
             const btnEl = playlistBtnRef.value.$el || playlistBtnRef.value
@@ -192,6 +288,29 @@ const handleClickOutside = (event) => {
 
         if (!isInsideDrawer && !isButton) {
             playerStore.showPlaylist = false
+        }
+    }
+
+    // Mobile player logic: Hide if clicking outside the player while it's shown
+    if (isMobile.value && !mobileHidden.value) {
+        // Check if click is inside footer player
+        // Use composedPath to handle detached elements (e.g. v-if toggled icons)
+        const path = event.composedPath ? event.composedPath() : []
+        const isInsidePlayer = path.includes(footerPlayerRef.value) || (footerPlayerRef.value && footerPlayerRef.value.contains(event.target))
+        
+        if (!isInsidePlayer) {
+            mobileHidden.value = true
+        }
+    }
+
+    // PC player logic: Hide if clicking outside the player while it's shown (and not locked)
+    if (!isMobile.value && !isLocked.value && !pcAutoHidden.value) {
+        // Use composedPath to handle detached elements (e.g. v-if toggled icons)
+        const path = event.composedPath ? event.composedPath() : []
+        const isInsidePlayer = path.includes(footerPlayerRef.value) || (footerPlayerRef.value && footerPlayerRef.value.contains(event.target))
+        
+        if (!isInsidePlayer) {
+            pcAutoHidden.value = true
         }
     }
 }
@@ -341,20 +460,14 @@ const togglePlaylist = () => {
     playerStore.showPlaylist = !playerStore.showPlaylist
 }
 
-const triggerTempShow = () => {
-    // 只有在未锁定（即处于自动隐藏模式）时才需要临时显示
-    if (!isLocked.value) {
-        isTempShow.value = true
-        if (tempShowTimer) clearTimeout(tempShowTimer)
-        tempShowTimer = setTimeout(() => {
-            isTempShow.value = false
-        }, 5000) // 停留 5 秒
-    }
-}
-
 // 监听歌曲变化，自动弹出
 watch(() => playerStore.currentMusic, (newVal) => {
-    if (newVal) triggerTempShow()
+    if (newVal) {
+        if (!isLocked.value) {
+            pcAutoHidden.value = false
+            startPCHideTimer()
+        }
+    }
 })
 
 const playItem = (item) => {
@@ -363,10 +476,21 @@ const playItem = (item) => {
 
 // 监听播放状态
 watch(() => playerStore.isPlaying, (newVal) => {
+  if (newVal) {
+    if (isMobile.value) {
+      mobileHidden.value = false
+      resetMobileHideTimer()
+    } else if (!isLocked.value) {
+        pcAutoHidden.value = false
+        if (!isHover.value) {
+            startPCHideTimer()
+        }
+    }
+  }
+
   if (audioRef.value) {
     if (newVal) {
       attemptPlay()
-      triggerTempShow() // 开始播放时自动弹出
     } else {
       audioRef.value.pause()
     }
@@ -412,12 +536,12 @@ onUnmounted(() => {
   min-width: 800px;
   max-width: 90vw;
   height: 80px;
-  background: rgba(255, 255, 255, 0.75);
+  background: var(--glass-bg);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  border-radius: 12px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-glass);
   z-index: 2000;
   display: flex;
   align-items: center;
@@ -456,7 +580,7 @@ onUnmounted(() => {
 
 .lock-toggle:hover {
   opacity: 1;
-  color: #409EFF;
+  color: var(--primary-color);
 }
 
 .player-content {
@@ -493,7 +617,7 @@ onUnmounted(() => {
 .music-info .title {
   font-size: 14px;
   font-weight: 600;
-  color: #303133;
+  color: var(--text-main);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -502,7 +626,7 @@ onUnmounted(() => {
 
 .music-info .artist {
   font-size: 12px;
-  color: #909399;
+  color: var(--text-secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -527,15 +651,15 @@ onUnmounted(() => {
 
 .control-btn {
     font-size: 0; /* fix icon alignment */
-    color: #303133;
+    color: var(--text-main);
     padding: 0;
 }
 .control-btn:hover {
-    color: #409EFF;
+    color: var(--primary-color);
 }
 
 .play-btn {
-    color: #409EFF;
+    color: var(--primary-color);
     transform: scale(1);
     transition: transform 0.2s;
 }
@@ -587,12 +711,12 @@ onUnmounted(() => {
     bottom: 92px;
     right: 0;
     width: 320px;
-    background: rgba(255, 255, 255, 0.75);
+    background: var(--glass-bg);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-    border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--glass-border);
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -696,36 +820,139 @@ onUnmounted(() => {
 /* 移动端适配 */
 @media (max-width: 768px) {
   .footer-player {
-    min-width: auto;
-    width: 90vw;
-    padding: 0 16px;
-    bottom: 16px;
-    height: auto;
-    min-height: 80px;
+    position: fixed;
+    bottom: 0 !important;
+    left: 0 !important;
+    transform: none !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    height: auto !important;
+    min-height: 80px; /* Reduced from flexible height to ensure compactness */
+    border-radius: 20px 20px 0 0 !important; /* Rounded top corners only */
+    border-bottom: none !important;
+    border-left: none !important;
+    border-right: none !important;
+    border-top: 2px solid var(--primary-color) !important; /* Add distinct top border */
+    padding: 12px 16px !important;
     flex-wrap: wrap;
+    background: #2D2D2D !important; /* Dark grey background */
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3) !important; /* Darker shadow */
+    color: #ffffff; /* Default text color for mobile */
+  }
+
+  /* Adjust text colors for mobile dark mode */
+  .music-info .title {
+    color: #ffffff !important;
   }
   
-  .player-content {
-      flex-wrap: wrap;
-      justify-content: center;
+  .music-info .artist {
+    color: #bbbbbb !important;
   }
   
-  .music-meta {
-    width: 100%;
-    margin-bottom: 12px;
+  .control-btn {
+    color: #ffffff !important;
+  }
+  
+  .control-btn:hover {
+    color: var(--primary-color) !important;
+  }
+  
+  .time-text {
+    color: #dddddd !important;
+  }
+
+  /* Force visible on mobile */
+  /* Replaced by .mobile-hidden logic below */
+  /* .footer-player.is-hidden { ... } */
+
+  .footer-player.mobile-hidden {
+    transform: translateY(110%) !important;
+    opacity: 0;
+    pointer-events: none; /* Prevent clicks when hidden */
+  }
+
+  .mobile-toggle-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px; /* Or center: left: 50%; transform: translateX(-50%); */
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    color: white;
+    display: flex;
+    align-items: center;
     justify-content: center;
+    z-index: 2001; /* Higher than sidebar overlay */
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+    cursor: pointer;
+    animation: bounce-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    pointer-events: auto; /* Enable clicks */
   }
-  
+
+  @keyframes bounce-in {
+    0% { transform: scale(0); opacity: 0; }
+    60% { transform: scale(1.1); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  .pulse-icon {
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+  }
+
+  .lock-toggle {
+    display: none; /* Hide lock button on mobile */
+  }
+
+  .player-content {
+    flex-direction: column;
+    padding: 0;
+    gap: 8px;
+  }
+
+  /* 1. Meta info at top */
+  .music-meta {
+    width: 100% !important;
+    justify-content: flex-start;
+  }
+
+  /* 2. Controls in middle */
   .player-controls-container {
-      width: 100%;
-      order: 3;
-      margin-top: 12px;
+    width: 100% !important;
+    order: 2;
+    margin-bottom: 0;
   }
   
+  .controls-buttons {
+    margin-bottom: 4px; /* Tighten up */
+  }
+
+  /* 3. Right controls (playlist/volume) at bottom/right or integrated */
   .right-controls {
-      width: 100%;
-      justify-content: center;
-      margin-top: 12px;
+    width: 100% !important;
+    order: 3;
+    justify-content: flex-end !important;
+    gap: 20px;
+    margin-top: 4px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 8px;
+  }
+  
+  .volume-control {
+    width: 40% !important;
+  }
+  
+  /* Adjust progress bar for mobile */
+  .progress-bar {
+    width: 100%;
+    padding: 0 4px;
   }
 
   .playlist-drawer {

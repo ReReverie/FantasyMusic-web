@@ -193,8 +193,15 @@ $primary-color: #667eea;
   overflow: hidden;
   font-family: 'PingFang SC', 'Helvetica Neue', Helvetica, 'Hiragino Sans GB', 'Microsoft YaHei', Arial, sans-serif;
   border-radius: 16px;
-  background-color: #fff; /* Ensure it looks like a card */
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  background-color: transparent;
+  /* box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); Removed to be cleaner */
+}
+
+@media screen and (max-width: 768px) {
+  .home-container {
+    padding: 16px; /* Reduce padding on mobile to prevent clipping */
+    overflow: visible; /* Allow content to flow */
+  }
 }
 
 /* 动态背景球 */
@@ -260,7 +267,7 @@ $primary-color: #667eea;
     font-size: 32px;
     font-weight: 800;
     margin: 0;
-    background: linear-gradient(135deg, #2c3e50 0%, #667eea 100%);
+    background: var(--text-gradient);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     letter-spacing: -0.5px;
@@ -268,7 +275,7 @@ $primary-color: #667eea;
   
   .subtitle {
     margin: 8px 0 0;
-    color: #606266;
+    color: var(--text-secondary);
     font-size: 16px;
     opacity: 0.8;
   }
@@ -276,12 +283,8 @@ $primary-color: #667eea;
 
 /* 玻璃拟态面板通用 */
 .glass-panel {
-  background: $glass-bg;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid $glass-border;
-  border-radius: 20px;
-  box-shadow: $shadow-soft;
+  /* Inherits from global .glass-panel */
+  border-radius: 20px; /* Local override */
 }
 
 /* 统计卡片网格 */
@@ -324,7 +327,7 @@ $primary-color: #667eea;
       width: 56px;
       height: 56px;
       border-radius: 16px;
-      background: rgba(255,255,255,0.5);
+      background: var(--table-header-bg);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -338,11 +341,11 @@ $primary-color: #667eea;
         font-size: 28px;
         font-weight: 800;
         line-height: 1.2;
-        color: #2c3e50;
+        color: var(--text-main);
       }
       .stat-label {
         font-size: 13px;
-        color: #909399;
+        color: var(--text-secondary);
         margin-top: 4px;
       }
     }
@@ -382,14 +385,14 @@ $primary-color: #667eea;
         margin: 0;
         font-size: 20px;
         font-weight: 700;
-        color: #2c3e50;
+        color: var(--text-main);
       }
     }
     
     .text-btn {
       background: none;
       border: none;
-      color: #909399;
+      color: var(--text-secondary);
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -413,8 +416,9 @@ $primary-color: #667eea;
   .playlist-card {
     cursor: pointer;
     group: hover;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     
-    .image-wrapper {
+    .playlist-cover {
       position: relative;
       border-radius: 12px;
       overflow: hidden;
@@ -428,18 +432,18 @@ $primary-color: #667eea;
         transition: transform 0.5s ease;
       }
       
-      .image-placeholder {
+      .image-slot {
         width: 100%;
         height: 100%;
-        background: #f5f7fa;
+        background: var(--table-header-bg);
         display: flex;
         justify-content: center;
         align-items: center;
-        color: #ccc;
+        color: var(--text-placeholder);
         font-size: 32px;
       }
       
-      .hover-play {
+      .play-overlay {
         position: absolute;
         inset: 0;
         background: rgba(0,0,0,0.3);
@@ -460,21 +464,22 @@ $primary-color: #667eea;
     }
     
     &:hover {
-      .image-wrapper {
+      transform: translateY(-8px);
+
+      .playlist-cover {
         box-shadow: 0 12px 24px rgba(0,0,0,0.15);
-        transform: translateY(-4px);
         
         .el-image {
           transform: scale(1.1);
         }
         
-        .hover-play {
+        .play-overlay {
           opacity: 1;
           .el-icon { transform: scale(1); }
         }
       }
       
-      .playlist-title { color: $primary-color; }
+      .playlist-title { color: var(--primary-color); }
     }
     
     .playlist-info {
@@ -483,7 +488,7 @@ $primary-color: #667eea;
       .playlist-title {
         font-size: 14px;
         font-weight: 600;
-        color: #2c3e50;
+        color: var(--text-main);
         margin-bottom: 4px;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -493,7 +498,7 @@ $primary-color: #667eea;
       
       .playlist-meta {
         font-size: 12px;
-        color: #909399;
+        color: var(--text-secondary);
       }
     }
   }
@@ -511,12 +516,12 @@ $primary-color: #667eea;
     align-items: center;
     padding: 10px 16px;
     border-radius: 12px;
-    background: rgba(255,255,255,0.4);
+    background: var(--card-bg);
     transition: all 0.2s;
     cursor: pointer;
     
     &:hover {
-      background: #fff;
+      background: var(--table-hover-bg);
       box-shadow: 0 4px 12px rgba(0,0,0,0.05);
       
       .song-left .song-cover-mini {
@@ -540,7 +545,7 @@ $primary-color: #667eea;
       .rank-num {
         font-size: 16px;
         font-weight: 700;
-        color: #c0c4cc;
+        color: var(--text-placeholder);
         width: 24px;
         
         &.top-3 { color: #ff9a9e; }
@@ -550,11 +555,11 @@ $primary-color: #667eea;
         width: 40px;
         height: 40px;
         border-radius: 8px;
-        background: #eef1f6;
+        background: var(--table-header-bg);
         display: flex;
         justify-content: center;
         align-items: center;
-        color: #909399;
+        color: var(--text-placeholder);
         transition: all 0.2s;
       }
       
@@ -565,7 +570,7 @@ $primary-color: #667eea;
         .song-name {
           font-size: 14px;
           font-weight: 600;
-          color: #2c3e50;
+          color: var(--text-main);
           margin-bottom: 2px;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -574,7 +579,7 @@ $primary-color: #667eea;
         
         .song-author {
           font-size: 12px;
-          color: #909399;
+          color: var(--text-secondary);
         }
       }
     }

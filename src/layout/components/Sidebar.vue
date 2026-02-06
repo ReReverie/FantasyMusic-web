@@ -4,9 +4,6 @@
       <el-menu
         :default-active="activeMenu"
         :collapse="isCollapse"
-        :background-color="variables.menuBg"
-        :text-color="variables.menuText"
-        :active-text-color="variables.menuActiveText"
         :unique-opened="false"
         :collapse-transition="false"
         mode="vertical"
@@ -70,12 +67,6 @@ const activeMenu = computed(() => {
   }
   return path
 })
-
-const variables = {
-  menuBg: '#304156',
-  menuText: '#bfcbd9',
-  menuActiveText: '#409EFF'
-}
 </script>
 
 <style scoped>
@@ -106,21 +97,28 @@ const variables = {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #263445;
-  color: #bfcbd9;
+  background-color: transparent;
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
+  color: var(--text-secondary);
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: all 0.3s;
   flex-shrink: 0;
 }
 
 .lock-toggle:hover {
-  background-color: #1f2d3d;
-  color: #409EFF;
+  background-color: rgba(255, 255, 255, 0.5);
+  color: var(--primary-color);
 }
 
 .lock-text {
   margin-left: 8px;
   font-size: 12px;
   white-space: nowrap;
+}
+
+@media screen and (max-width: 768px) {
+  .lock-toggle {
+    display: none;
+  }
 }
 </style>

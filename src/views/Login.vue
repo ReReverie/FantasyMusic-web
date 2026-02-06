@@ -1,109 +1,136 @@
 <template>
-  <div class="login-container" :style="{ backgroundImage: `url(${currentBg})` }">
-    <!-- 背景遮罩，用于提升文字可读性 -->
-    <div class="bg-overlay"></div>
+  <div class="login-page">
+    <div class="background-animate">
+      <div class="circle circle-1"></div>
+      <div class="circle circle-2"></div>
+      <div class="circle circle-3"></div>
+    </div>
     
-    <el-card class="login-card">
-      <template #header>
-        <div class="card-header">
-          <h2>梦幻音乐平台</h2>
+    <div class="login-container glass-panel">
+      <div class="login-header">
+        <div class="logo-area">
+          <img src="https://wpimg.wallstcn.com/69a1c46c-eb1c-4b46-8bd4-e9e686ef5251.png" alt="Logo" class="logo-img" />
+          <h1 class="app-title">Fantasy Music</h1>
         </div>
-      </template>
-      
+      </div>
+
       <!-- 登录表单 -->
-      <div v-if="viewMode === 'login'">
-        <el-form :model="loginForm" :rules="rules" ref="loginFormRef" label-position="top">
-          <el-form-item label="用户名" prop="username">
-            <el-input v-model="loginForm.username" prefix-icon="User" placeholder="请输入用户名" />
-          </el-form-item>
-          <el-form-item label="密码" prop="password">
-            <el-input v-model="loginForm.password" prefix-icon="Lock" type="password" placeholder="请输入密码" show-password @keyup.enter="handleLogin" />
-          </el-form-item>
-          
-          <el-form-item v-if="showCaptcha" label="验证码" prop="captchaCode">
-            <div class="captcha-container">
-              <el-input v-model="loginForm.captchaCode" placeholder="请输入验证码" class="captcha-input" @keyup.enter="handleLogin" />
-              <img :src="captchaImage" class="captcha-img" @click="refreshCaptcha" alt="点击刷新验证码" title="点击刷新验证码" />
+      <transition name="fade-slide" mode="out-in">
+        <div v-if="viewMode === 'login'" key="login" class="form-wrapper">
+          <el-form :model="loginForm" :rules="rules" ref="loginFormRef" size="large">
+            <el-form-item prop="username">
+              <el-input 
+                v-model="loginForm.username" 
+                placeholder="用户名 / 账号" 
+                :prefix-icon="User"
+                class="fantasy-input"
+              />
+            </el-form-item>
+            <el-form-item prop="password">
+              <el-input 
+                v-model="loginForm.password" 
+                type="password" 
+                placeholder="密码" 
+                :prefix-icon="Lock" 
+                show-password 
+                @keyup.enter="handleLogin"
+                class="fantasy-input"
+              />
+            </el-form-item>
+            
+            <el-form-item v-if="showCaptcha" prop="captchaCode">
+              <div class="captcha-row">
+                <el-input 
+                  v-model="loginForm.captchaCode" 
+                  placeholder="验证码" 
+                  class="fantasy-input"
+                  @keyup.enter="handleLogin"
+                />
+                <img :src="captchaImage" class="captcha-img" @click="refreshCaptcha" alt="点击刷新" />
+              </div>
+            </el-form-item>
+
+            <div class="form-footer">
+              <el-checkbox v-model="rememberMe" class="fantasy-checkbox">记住我</el-checkbox>
+              <el-link type="primary" :underline="false" @click="switchMode('reset')">忘记密码?</el-link>
             </div>
-          </el-form-item>
 
-          <div class="login-links">
-            <el-link type="primary" :underline="false" @click="switchMode('reset')">忘记密码?</el-link>
-            <el-link type="primary" :underline="false" @click="switchMode('register')">没有账户?</el-link>
-          </div>
-
-          <el-form-item>
-            <el-button type="primary" class="w-100" @click="handleLogin" :loading="loading">登录</el-button>
-          </el-form-item>
-        </el-form>
-      </div>
-      
-      <!-- 注册表单 -->
-      <div v-else-if="viewMode === 'register'">
-        <el-form :model="registerForm" :rules="registerRules" ref="registerFormRef" label-position="top">
-          <el-form-item label="用户名" prop="username">
-            <el-input v-model="registerForm.username" prefix-icon="User" placeholder="设置用户名" />
-          </el-form-item>
-          <el-form-item label="邮箱" prop="email">
-            <el-input v-model="registerForm.email" prefix-icon="Message" placeholder="请输入邮箱" />
-          </el-form-item>
-          <el-form-item label="验证码" prop="code">
-            <div class="code-container">
-              <el-input v-model="registerForm.code" placeholder="请输入验证码" class="code-input" />
-              <el-button :disabled="countdown > 0" @click="handleSendCode" type="primary" plain class="code-btn">
-                {{ countdown > 0 ? `${countdown}s后重新获取` : '获取验证码' }}
-              </el-button>
-            </div>
-          </el-form-item>
-          <el-form-item label="密码" prop="password">
-            <el-input v-model="registerForm.password" prefix-icon="Lock" type="password" placeholder="设置密码" show-password />
-          </el-form-item>
-          <el-form-item label="确认密码" prop="confirmPassword">
-            <el-input v-model="registerForm.confirmPassword" prefix-icon="Lock" type="password" placeholder="确认密码" show-password />
-          </el-form-item>
+            <el-button type="primary" class="submit-btn" @click="handleLogin" :loading="loading" round>
+              登 录
+            </el-button>
+          </el-form>
           
-          <div class="login-links" style="justify-content: flex-end; margin-bottom: 18px;">
-            <el-link type="primary" :underline="false" @click="switchMode('login')">已有账户?</el-link>
+          <div class="switch-mode">
+            还没有账号? <span class="action-link" @click="switchMode('register')">立即注册</span>
           </div>
+        </div>
 
-          <el-form-item>
-            <el-button type="success" class="w-100" @click="handleRegister" :loading="loading">注册</el-button>
-          </el-form-item>
-        </el-form>
-      </div>
+        <!-- 注册表单 -->
+        <div v-else-if="viewMode === 'register'" key="register" class="form-wrapper">
+          <el-form :model="registerForm" :rules="registerRules" ref="registerFormRef" size="large">
+            <el-form-item prop="username">
+              <el-input v-model="registerForm.username" placeholder="设置用户名" :prefix-icon="User" class="fantasy-input" />
+            </el-form-item>
+            <el-form-item prop="email">
+              <el-input v-model="registerForm.email" placeholder="电子邮箱" :prefix-icon="Message" class="fantasy-input" />
+            </el-form-item>
+            <el-form-item prop="code">
+              <div class="code-row">
+                <el-input v-model="registerForm.code" placeholder="验证码" class="fantasy-input" />
+                <el-button :disabled="countdown > 0" @click="handleSendCode" type="primary" plain class="code-btn" round>
+                  {{ countdown > 0 ? `${countdown}s` : '获取验证码' }}
+                </el-button>
+              </div>
+            </el-form-item>
+            <el-form-item prop="password">
+              <el-input v-model="registerForm.password" type="password" placeholder="设置密码 (8-24位, 含大小写)" :prefix-icon="Lock" show-password class="fantasy-input" />
+            </el-form-item>
+            <el-form-item prop="confirmPassword">
+              <el-input v-model="registerForm.confirmPassword" type="password" placeholder="确认密码" :prefix-icon="Lock" show-password class="fantasy-input" />
+            </el-form-item>
 
-      <!-- 重置密码表单 -->
-      <div v-else-if="viewMode === 'reset'">
-        <el-form :model="resetForm" :rules="resetRules" ref="resetFormRef" label-position="top">
-          <el-form-item label="账号" prop="account">
-            <el-input v-model="resetForm.account" prefix-icon="User" placeholder="请输入用户名或邮箱" />
-          </el-form-item>
-          <el-form-item label="验证码" prop="code">
-            <div class="code-container">
-              <el-input v-model="resetForm.code" placeholder="请输入验证码" class="code-input" />
-              <el-button :disabled="resetCountdown > 0" @click="handleSendResetCode" type="primary" plain class="code-btn">
-                {{ resetCountdown > 0 ? `${resetCountdown}s后重新获取` : '获取验证码' }}
-              </el-button>
-            </div>
-          </el-form-item>
-          <el-form-item label="新密码" prop="newPassword">
-            <el-input v-model="resetForm.newPassword" prefix-icon="Lock" type="password" placeholder="设置新密码" show-password />
-          </el-form-item>
-          <el-form-item label="确认新密码" prop="confirmNewPassword">
-            <el-input v-model="resetForm.confirmNewPassword" prefix-icon="Lock" type="password" placeholder="确认新密码" show-password />
-          </el-form-item>
-          
-          <div class="login-links" style="justify-content: flex-end; margin-bottom: 18px;">
-            <el-link type="primary" :underline="false" @click="switchMode('login')">返回登录</el-link>
+            <el-button type="success" class="submit-btn" @click="handleRegister" :loading="loading" round>
+              注 册
+            </el-button>
+          </el-form>
+
+          <div class="switch-mode">
+            已有账号? <span class="action-link" @click="switchMode('login')">立即登录</span>
           </div>
+        </div>
 
-          <el-form-item>
-            <el-button type="warning" class="w-100" @click="handleResetPassword" :loading="loading">重置密码</el-button>
-          </el-form-item>
-        </el-form>
-      </div>
+        <!-- 重置密码表单 -->
+        <div v-else-if="viewMode === 'reset'" key="reset" class="form-wrapper">
+          <el-form :model="resetForm" :rules="resetRules" ref="resetFormRef" size="large">
+            <el-form-item prop="account">
+              <el-input v-model="resetForm.account" placeholder="用户名或邮箱" :prefix-icon="User" class="fantasy-input" />
+            </el-form-item>
+            <el-form-item prop="code">
+              <div class="code-row">
+                <el-input v-model="resetForm.code" placeholder="验证码" class="fantasy-input" />
+                <el-button :disabled="resetCountdown > 0" @click="handleSendResetCode" type="primary" plain class="code-btn" round>
+                  {{ resetCountdown > 0 ? `${resetCountdown}s` : '获取验证码' }}
+                </el-button>
+              </div>
+            </el-form-item>
+            <el-form-item prop="newPassword">
+              <el-input v-model="resetForm.newPassword" type="password" placeholder="新密码" :prefix-icon="Lock" show-password class="fantasy-input" />
+            </el-form-item>
+            <el-form-item prop="confirmNewPassword">
+              <el-input v-model="resetForm.confirmNewPassword" type="password" placeholder="确认新密码" :prefix-icon="Lock" show-password class="fantasy-input" />
+            </el-form-item>
 
-    </el-card>
+            <el-button type="warning" class="submit-btn" @click="handleResetPassword" :loading="loading" round>
+              重置密码
+            </el-button>
+          </el-form>
+
+          <div class="switch-mode">
+            想起密码了? <span class="action-link" @click="switchMode('login')">返回登录</span>
+          </div>
+        </div>
+      </transition>
+    </div>
   </div>
 </template>
 
@@ -112,18 +139,16 @@ import { ref, reactive, onUnmounted, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
 import { ElMessage } from 'element-plus'
+import { User, Lock, Message } from '@element-plus/icons-vue'
 import { register, getCaptcha, sendEmailCode, sendPasswordResetCode, resetPassword } from '@/api/user'
 import { encrypt } from '@/utils/jsencrypt'
-import { getBackgroundImage, preloadImage, backgroundConfig } from '@/api/background'
 
 const router = useRouter()
 const userStore = useUserStore()
 
-// 视图模式: 'login', 'register', 'reset'
 const viewMode = ref('login')
 const loading = ref(false)
-const bgLoading = ref(false)
-const currentBg = ref('')
+const rememberMe = ref(false)
 
 const loginFormRef = ref(null)
 const registerFormRef = ref(null)
@@ -233,7 +258,6 @@ const handleSendCode = () => {
         ElMessage.success('验证码已发送，请检查邮箱')
         loading.value = false
         
-        // 记录过期时间到 localStorage
         const expireTime = Date.now() + 60 * 1000
         localStorage.setItem('register_code_expire_time', expireTime)
         
@@ -260,7 +284,6 @@ const handleSendResetCode = () => {
         ElMessage.success('验证码已发送，请检查邮箱')
         loading.value = false
         
-        // 记录过期时间到 localStorage
         const expireTime = Date.now() + 60 * 1000
         localStorage.setItem('reset_code_expire_time', expireTime)
         
@@ -285,6 +308,7 @@ const handleLogin = () => {
       loading.value = true
       userStore.login(loginForm).then(() => {
         ElMessage.success('登录成功')
+        saveRememberMe() // Save credentials if rememberMe is checked
         const redirectPath = sessionStorage.getItem('redirect_path')
         if (redirectPath && redirectPath.startsWith('/') && !redirectPath.startsWith('//') && !redirectPath.includes('http') && !redirectPath.includes('hybridaction')) {
           router.push(redirectPath)
@@ -295,11 +319,6 @@ const handleLogin = () => {
         loading.value = false
       }).catch((error) => {
         console.error('Login failed:', error)
-        
-        // Check for Captcha Required error (code 423)
-        // 支持两种模式：
-        // 1. 业务状态码 423 (error.code === 423)
-        // 2. HTTP 状态码 423 (error.response.status === 423)
         const isCaptchaRequired = error.code === 423 || (error.response && error.response.status === 423)
         
         if (isCaptchaRequired) {
@@ -381,27 +400,46 @@ const handleResetPassword = () => {
   })
 }
 
-const switchMode = (mode) => {
-  viewMode.value = mode
+const saveRememberMe = () => {
+  if (rememberMe.value) {
+    localStorage.setItem('login_username', loginForm.username)
+    // 简单保存密码（Base64编码），仅供演示
+    // 注意：实际生产环境不建议保存明文密码，或者应该使用更安全的存储方式
+    localStorage.setItem('login_password', btoa(loginForm.password))
+    localStorage.setItem('login_remember', 'true')
+  } else {
+    localStorage.removeItem('login_username')
+    localStorage.removeItem('login_password')
+    localStorage.removeItem('login_remember')
+  }
 }
 
-const changeBackground = async () => {
-  try {
-    bgLoading.value = true
-    const url = await getBackgroundImage()
-    await preloadImage(url)
-    currentBg.value = url
-  } catch (error) {
-    console.error('Failed to load background:', error)
-    // 背景加载失败，清空 currentBg 以触发 CSS 渐变背景兜底
-    currentBg.value = ''
-  } finally {
-    bgLoading.value = false
+const switchMode = (mode) => {
+  viewMode.value = mode
+  // 清空表单
+  if (loginFormRef.value) loginFormRef.value.resetFields()
+  if (registerFormRef.value) registerFormRef.value.resetFields()
+  if (resetFormRef.value) resetFormRef.value.resetFields()
+}
+
+const checkRememberMe = () => {
+  const remember = localStorage.getItem('login_remember')
+  if (remember === 'true') {
+    rememberMe.value = true
+    const username = localStorage.getItem('login_username')
+    const password = localStorage.getItem('login_password')
+    if (username) loginForm.username = username
+    if (password) {
+      try {
+        loginForm.password = atob(password)
+      } catch (e) {
+        console.error('Failed to decode password')
+      }
+    }
   }
 }
 
 const checkCountdown = () => {
-  // 检查注册倒计时
   const registerExpire = localStorage.getItem('register_code_expire_time')
   if (registerExpire) {
     const remaining = Math.ceil((parseInt(registerExpire) - Date.now()) / 1000)
@@ -419,7 +457,6 @@ const checkCountdown = () => {
     }
   }
 
-  // 检查重置倒计时
   const resetExpire = localStorage.getItem('reset_code_expire_time')
   if (resetExpire) {
     const remaining = Math.ceil((parseInt(resetExpire) - Date.now()) / 1000)
@@ -439,7 +476,6 @@ const checkCountdown = () => {
 }
 
 onMounted(() => {
-  changeBackground()
   checkCountdown()
 })
 
@@ -449,159 +485,255 @@ onUnmounted(() => {
 })
 </script>
 
-<style scoped>
-/* 引入现代风格字体 (Noto Sans SC) */
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&display=swap');
-
-.login-container {
+<style scoped lang="scss">
+.login-page {
+  width: 100vw;
+  height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
-  /* 默认背景色，作为兜底 */
-  background-color: #f0f2f5;
-  /* 动态渐变背景兜底：当 currentBg 为空时，这些样式会生效 */
-  background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
-  background-size: 400% 400%;
-  animation: gradientBG 15s ease infinite;
-  
-  /* 图片背景样式：当内联样式设置了 background-image 时，会覆盖上面的 background 属性 */
-  background-position: center;
-  background-repeat: no-repeat;
-  /* 注意：这里移除了 background-size: cover，改为在 style 绑定中动态处理，或者保留 cover 但需注意层叠顺序 */
-  /* 为了兼容性，我们保持 background-size: cover，但图片 URL 通过内联样式注入 */
-  
-  transition: background-image 1s ease-in-out;
+  background: var(--bg-gradient);
   position: relative;
+  overflow: hidden;
 }
 
-/* 修复：当有图片时的样式覆盖 */
-.login-container[style*="background-image"] {
-  background-size: cover;
-  animation: none; /* 有图片时停止渐变动画 */
-}
-
-@keyframes gradientBG {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
-.bg-overlay {
+/* 动态背景动画 */
+.background-animate {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.1); /* 降低遮罩透明度 */
-  backdrop-filter: blur(8px); /* 增加背景模糊度，使背景看起来更像一个整体的氛围，而不是低分辨率图片 */
-  -webkit-backdrop-filter: blur(8px);
   z-index: 0;
+  overflow: hidden;
+  
+  .circle {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.6;
+    animation: move 10s infinite alternate;
+  }
+  
+  .circle-1 {
+    top: 10%;
+    left: 10%;
+    width: 500px;
+    height: 500px;
+    background: #8b5cf6; /* Violet */
+    animation-duration: 12s;
+    animation-delay: -2s;
+  }
+  
+  .circle-2 {
+    bottom: 20%;
+    right: 10%;
+    width: 600px;
+    height: 600px;
+    background: #ec4899; /* Pink */
+    animation-duration: 15s;
+    animation-delay: -1s;
+  }
+  
+  .circle-3 {
+    top: 40%;
+    left: 40%;
+    width: 400px;
+    height: 400px;
+    background: #a78bfa; /* Light Violet */
+    opacity: 0.5;
+    animation-duration: 10s;
+    animation-delay: -4s;
+  }
 }
 
-.login-card {
-  width: 400px;
-  border-radius: 16px; /* 增加圆角 */
-  z-index: 1;
-  background-color: rgba(255, 255, 255, 0.65) !important; /* 降低卡片背景不透明度 */
-  backdrop-filter: blur(20px) saturate(180%); /* 增强毛玻璃效果 */
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.4); /* 增强边框质感 */
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.2); /* 调整阴影使其更柔和 */
+@keyframes move {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(100px, -50px) scale(1.1);
+  }
+  66% {
+    transform: translate(-50px, 100px) scale(0.9);
+  }
+  100% {
+    transform: translate(50px, 50px) scale(1.05);
+  }
 }
 
-.card-header {
+.login-container {
+  width: 440px;
+  max-width: 90%;
+  padding: 40px;
+  border-radius: 24px;
+  z-index: 10;
+  /* Glassmorphism inherits from global .glass-panel, but we add more specificity here */
+  background: var(--card-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+}
+
+.login-header {
   text-align: center;
-}
-.card-header h2 {
-  margin: 0;
-  font-size: 32px;
-  font-weight: 800;
-  letter-spacing: 4px;
-  background: linear-gradient(120deg, #a18cd1 0%, #fbc2eb 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  /* 添加 drop-shadow 增强立体感，因为文字透明无法用 text-shadow */
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
-  /* 稍微增加一点内边距防止文字被裁剪 */
-  padding: 5px 0;
-  /* 字体设置由下方专门规则覆盖 */
+  margin-bottom: 32px;
+  
+  .logo-area {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 8px;
+    
+    .logo-img {
+      width: 40px;
+      height: 40px;
+    }
+    
+    .app-title {
+      font-size: 28px;
+      font-weight: 800;
+      margin: 0;
+      background: linear-gradient(to right, #8b5cf6, #ec4899);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.5px;
+    }
+  }
+  
+  .app-subtitle {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 14px;
+  }
 }
 
-.w-100 {
-  width: 100%;
+@media screen and (max-width: 768px) {
+  .login-container {
+    width: 90%;
+    padding: 24px;
+  }
+  
+  .background-animate .circle {
+    opacity: 0.4; /* Reduce distraction on small screens */
+  }
+}
+:deep(.fantasy-input) {
+  .el-input__wrapper {
+    background-color: var(--input-bg);
+    border: 1px solid var(--input-border);
+    box-shadow: none !important;
+    padding: 12px 16px;
+    height: 48px;
+    transition: all 0.3s;
+    
+    &:hover, &.is-focus {
+      background-color: var(--input-bg);
+      border-color: #8b5cf6;
+      box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1) !important;
+    }
+  }
+  
+  .el-input__inner {
+    height: 100%;
+    color: var(--text-main);
+    font-size: 16px;
+  }
+  
+  .el-input__prefix-inner {
+    font-size: 18px;
+    color: #9ca3af;
+  }
 }
 
-.captcha-container {
+.captcha-row, .code-row {
   display: flex;
-  gap: 10px;
-}
-.captcha-input {
-  flex: 1;
-}
-.captcha-img {
-  width: 100px;
-  height: 32px;
-  cursor: pointer;
-  border: 1px solid #dcdfe6;
-  border-radius: 4px;
-}
-
-.code-container {
-  display: flex;
-  gap: 10px;
-}
-.code-input {
-  flex: 1;
-}
-.code-btn {
-  width: 120px;
+  gap: 12px;
+  
+  .captcha-img {
+    height: 48px;
+    border-radius: 12px;
+    cursor: pointer;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    opacity: 0.9;
+    transition: opacity 0.3s;
+    
+    &:hover {
+      opacity: 1;
+    }
+  }
+  
+  .code-btn {
+    height: 48px;
+    padding: 0 24px;
+    font-weight: 600;
+  }
 }
 
-.login-links {
+.form-footer {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 18px;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.submit-btn {
+  width: 100%;
+  height: 48px;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  margin-top: 8px;
+  background: linear-gradient(to right, #8b5cf6, #ec4899);
+  border: none;
+  transition: transform 0.2s, box-shadow 0.2s;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(139, 92, 246, 0.25);
+    background: linear-gradient(to right, #7c3aed, #db2777);
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.switch-mode {
+  text-align: center;
+  margin-top: 24px;
+  color: #6b7280;
   font-size: 14px;
+  
+  .action-link {
+    color: #8b5cf6;
+    font-weight: 600;
+    cursor: pointer;
+    margin-left: 4px;
+    transition: color 0.3s;
+    
+    &:hover {
+      color: #ec4899;
+      text-decoration: underline;
+    }
+  }
 }
 
-/* 全局字体与交互设置 */
-:deep(.el-card__body), :deep(.el-form-item__label), :deep(.el-input__inner), :deep(.el-button) {
-  font-family: 'Noto Sans SC', 'PingFang SC', 'Heiti SC', 'Microsoft YaHei UI', 'Microsoft YaHei', sans-serif !important;
+/* 过渡动画 */
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: all 0.4s ease;
 }
 
-.login-container * {
-  user-select: none; /* 禁止复制 */
+.fade-slide-enter-from {
+  opacity: 0;
+  transform: translateY(20px);
 }
 
-/* 标题样式增强 */
-.card-header h2 {
-  font-family: 'Noto Sans SC', sans-serif !important;
-  font-weight: 900; /* 使用极粗字重增加现代感 */
-  letter-spacing: 2px; /* 稍微收紧字间距，更显紧凑现代 */
-  transition: all 0.3s ease;
-}
-
-/* 鼠标悬停发光动画 - 针对标题 */
-.card-header h2:hover {
-  filter: drop-shadow(0 0 12px rgba(161, 140, 209, 0.9)); /* 增强发光范围 */
-  transform: scale(1.02);
-}
-
-/* 鼠标悬停发光动画 - 针对链接和Label等文本 */
-.login-links .el-link, :deep(.el-form-item__label) {
-  transition: all 0.3s ease;
-}
-
-.login-links .el-link:hover, :deep(.el-form-item__label):hover {
-  text-shadow: 0 0 8px rgba(161, 140, 209, 0.5); /* 柔和的辉光 */
-  color: #a18cd1; /* 悬停时轻微变色 */
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: translateY(-20px);
 }
 </style>
