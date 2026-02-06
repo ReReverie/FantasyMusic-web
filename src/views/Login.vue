@@ -393,7 +393,8 @@ const changeBackground = async () => {
     currentBg.value = url
   } catch (error) {
     console.error('Failed to load background:', error)
-    ElMessage.warning('背景加载失败，使用默认背景')
+    // 背景加载失败，清空 currentBg 以触发 CSS 渐变背景兜底
+    currentBg.value = ''
   } finally {
     bgLoading.value = false
   }
@@ -457,12 +458,39 @@ onUnmounted(() => {
   justify-content: center;
   align-items: center;
   height: 100vh;
+  /* 默认背景色，作为兜底 */
   background-color: #f0f2f5;
-  background-size: cover;
+  /* 动态渐变背景兜底：当 currentBg 为空时，这些样式会生效 */
+  background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+  background-size: 400% 400%;
+  animation: gradientBG 15s ease infinite;
+  
+  /* 图片背景样式：当内联样式设置了 background-image 时，会覆盖上面的 background 属性 */
   background-position: center;
   background-repeat: no-repeat;
+  /* 注意：这里移除了 background-size: cover，改为在 style 绑定中动态处理，或者保留 cover 但需注意层叠顺序 */
+  /* 为了兼容性，我们保持 background-size: cover，但图片 URL 通过内联样式注入 */
+  
   transition: background-image 1s ease-in-out;
   position: relative;
+}
+
+/* 修复：当有图片时的样式覆盖 */
+.login-container[style*="background-image"] {
+  background-size: cover;
+  animation: none; /* 有图片时停止渐变动画 */
+}
+
+@keyframes gradientBG {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 .bg-overlay {
@@ -471,20 +499,21 @@ onUnmounted(() => {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.2); /* 轻微暗色遮罩 */
-  backdrop-filter: blur(2px); /* 轻微背景模糊 */
+  background: rgba(0, 0, 0, 0.1); /* 降低遮罩透明度 */
+  backdrop-filter: blur(8px); /* 增加背景模糊度，使背景看起来更像一个整体的氛围，而不是低分辨率图片 */
+  -webkit-backdrop-filter: blur(8px);
   z-index: 0;
 }
 
 .login-card {
   width: 400px;
-  border-radius: 12px;
+  border-radius: 16px; /* 增加圆角 */
   z-index: 1;
-  background-color: rgba(255, 255, 255, 0.75) !important; /* 半透明背景 */
-  backdrop-filter: blur(10px) saturate(180%); /* 毛玻璃效果 */
-  -webkit-backdrop-filter: blur(10px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  background-color: rgba(255, 255, 255, 0.65) !important; /* 降低卡片背景不透明度 */
+  backdrop-filter: blur(20px) saturate(180%); /* 增强毛玻璃效果 */
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.4); /* 增强边框质感 */
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.2); /* 调整阴影使其更柔和 */
 }
 
 .card-header {
