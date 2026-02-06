@@ -230,13 +230,19 @@ const handleSendCode = () => {
     if (valid) {
       loading.value = true
       sendEmailCode(registerForm.email).then(() => {
-        ElMessage.success('验证码已发送')
+        ElMessage.success('验证码已发送，请检查邮箱')
         loading.value = false
+        
+        // 记录过期时间到 localStorage
+        const expireTime = Date.now() + 60 * 1000
+        localStorage.setItem('register_code_expire_time', expireTime)
+        
         countdown.value = 60
         timer = setInterval(() => {
           countdown.value--
           if (countdown.value <= 0) {
             clearInterval(timer)
+            localStorage.removeItem('register_code_expire_time')
           }
         }, 1000)
       }).catch(err => {
@@ -253,11 +259,17 @@ const handleSendResetCode = () => {
       sendPasswordResetCode(resetForm.account).then(() => {
         ElMessage.success('验证码已发送，请检查邮箱')
         loading.value = false
+        
+        // 记录过期时间到 localStorage
+        const expireTime = Date.now() + 60 * 1000
+        localStorage.setItem('reset_code_expire_time', expireTime)
+        
         resetCountdown.value = 60
         resetTimer = setInterval(() => {
           resetCountdown.value--
           if (resetCountdown.value <= 0) {
             clearInterval(resetTimer)
+            localStorage.removeItem('reset_code_expire_time')
           }
         }, 1000)
       }).catch(err => {
@@ -387,8 +399,47 @@ const changeBackground = async () => {
   }
 }
 
+const checkCountdown = () => {
+  // 检查注册倒计时
+  const registerExpire = localStorage.getItem('register_code_expire_time')
+  if (registerExpire) {
+    const remaining = Math.ceil((parseInt(registerExpire) - Date.now()) / 1000)
+    if (remaining > 0) {
+      countdown.value = remaining
+      timer = setInterval(() => {
+        countdown.value--
+        if (countdown.value <= 0) {
+          clearInterval(timer)
+          localStorage.removeItem('register_code_expire_time')
+        }
+      }, 1000)
+    } else {
+      localStorage.removeItem('register_code_expire_time')
+    }
+  }
+
+  // 检查重置倒计时
+  const resetExpire = localStorage.getItem('reset_code_expire_time')
+  if (resetExpire) {
+    const remaining = Math.ceil((parseInt(resetExpire) - Date.now()) / 1000)
+    if (remaining > 0) {
+      resetCountdown.value = remaining
+      resetTimer = setInterval(() => {
+        resetCountdown.value--
+        if (resetCountdown.value <= 0) {
+          clearInterval(resetTimer)
+          localStorage.removeItem('reset_code_expire_time')
+        }
+      }, 1000)
+    } else {
+      localStorage.removeItem('reset_code_expire_time')
+    }
+  }
+}
+
 onMounted(() => {
   changeBackground()
+  checkCountdown()
 })
 
 onUnmounted(() => {

@@ -31,6 +31,7 @@ import { updatePassword } from '@/api/user'
 import { ElMessage } from 'element-plus'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
+import { encrypt } from '@/utils/jsencrypt'
 
 const router = useRouter()
 const userStore = useUserStore()
