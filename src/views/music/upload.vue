@@ -111,33 +111,18 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { UploadFilled, ArrowLeft, Loading } from '@element-plus/icons-vue'
-import { uploadMusic } from '@/api/music'
-import { ElMessage } from 'element-plus'
-import SparkMD5 from 'spark-md5'
+import { useUploadStore } from '@/store/upload'
+import { storeToRefs } from 'pinia'
 
 const router = useRouter()
-const fileList = ref([])
-const isUploading = ref(false)
-
-const uploadingCount = computed(() => {
-  return fileList.value.filter(f => f.status === 'uploading' || f.status === 'calculating').length
-})
+const uploadStore = useUploadStore()
+const { fileList, isUploading, uploadingCount } = storeToRefs(uploadStore)
 
 const handleFileChange = (uploadFile) => {
-  // 检查是否已经存在
-  if (fileList.value.some(f => f.uid === uploadFile.uid)) return
-  
-  fileList.value.push({
-    uid: uploadFile.uid,
-    raw: uploadFile.raw,
-    name: uploadFile.name,
-    size: uploadFile.size,
-    status: 'ready', // ready, calculating, uploading, success, fail
-    errorMsg: ''
-  })
+  uploadStore.addFile(uploadFile)
 }
 
 const formatSize = (bytes) => {
@@ -149,109 +134,19 @@ const formatSize = (bytes) => {
 }
 
 const removeFile = (file) => {
-  const index = fileList.value.findIndex(f => f.uid === file.uid)
-  if (index !== -1) {
-    fileList.value.splice(index, 1)
-  }
+  uploadStore.removeFile(file.uid)
 }
 
 const clearFiles = () => {
-  fileList.value = []
+  uploadStore.clearFiles()
 }
 
-// 计算文件哈希
-const calculateHash = (file) => {
-  return new Promise((resolve, reject) => {
-    const blobSlice = File.prototype.slice || File.prototype.mozSlice || File.prototype.webkitSlice
-    const chunkSize = 2097152 // 2MB
-    const chunks = Math.ceil(file.size / chunkSize)
-    let currentChunk = 0
-    const spark = new SparkMD5.ArrayBuffer()
-    const fileReader = new FileReader()
-
-    fileReader.onload = function (e) {
-      spark.append(e.target.result)
-      currentChunk++
-
-      if (currentChunk < chunks) {
-        loadNext()
-      } else {
-        const hash = spark.end()
-        resolve(hash)
-      }
-    }
-
-    fileReader.onerror = function () {
-      reject('Hash calculation failed')
-    }
-
-    function loadNext() {
-      const start = currentChunk * chunkSize
-      const end = ((start + chunkSize) >= file.size) ? file.size : start + chunkSize
-      fileReader.readAsArrayBuffer(blobSlice.call(file, start, end))
-    }
-
-    loadNext()
-  })
+const startUpload = () => {
+  uploadStore.startUpload()
 }
 
-// 处理单个文件上传
-const processUpload = async (fileItem) => {
-  if (fileItem.status === 'success') return
-
-  try {
-    // 1. 计算哈希
-    fileItem.status = 'calculating'
-    const hash = await calculateHash(fileItem.raw)
-    
-    // 2. 上传
-    fileItem.status = 'uploading'
-    const formData = new FormData()
-    formData.append('file', fileItem.raw)
-    formData.append('hash', hash)
-
-    // 设置 10 分钟超时，防止大文件上传中断
-    await uploadMusic(formData, { skipErrorMessage: true, timeout: 600000 })
-    fileItem.status = 'success'
-    fileItem.errorMsg = ''
-  } catch (error) {
-    fileItem.status = 'fail'
-    fileItem.errorMsg = error.message || '上传失败'
-    console.error(`File ${fileItem.name} upload failed:`, error)
-  }
-}
-
-// 队列上传控制器
-const startUpload = async () => {
-  if (isUploading.value) return
-  isUploading.value = true
-
-  const pendingFiles = fileList.value.filter(f => f.status === 'ready' || f.status === 'fail')
-  
-  // 串行处理，每次上传一个
-  for (const file of pendingFiles) {
-    // 如果用户中途清空了列表，停止上传
-    if (!fileList.value.find(f => f.uid === file.uid)) continue
-    
-    await processUpload(file)
-  }
-
-  isUploading.value = false
-  
-  // 检查是否全部成功
-  const failedCount = fileList.value.filter(f => f.status === 'fail').length
-  if (failedCount === 0) {
-    ElMessage.success('所有文件上传完成')
-  } else {
-    ElMessage.warning(`上传完成，有 ${failedCount} 个文件失败`)
-  }
-}
-
-const retryUpload = async (file) => {
-  if (isUploading.value) return
-  isUploading.value = true
-  await processUpload(file)
-  isUploading.value = false
+const retryUpload = (file) => {
+  uploadStore.retryUpload(file.uid)
 }
 </script>
 
