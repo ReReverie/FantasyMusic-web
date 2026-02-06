@@ -60,3 +60,19 @@ export function sendEmailCode(email) {
     params: { email }
   })
 }
+
+export function sendPasswordResetCode(account) {
+  return request({
+    url: '/auth/password/code',
+    method: 'post',
+    params: { account }
+  })
+}
+
+export function resetPassword(data) {
+  return request({
+    url: '/auth/password/reset',
+    method: 'post',
+    data
+  })
+}

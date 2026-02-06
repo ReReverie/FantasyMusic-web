@@ -28,7 +28,7 @@
            <el-tag type="success">{{ userInfo.userLevelValue || '普通用户' }}</el-tag>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="handleUpdate" :loading="loading">保存更改</el-button>
+          <el-button type="primary" @click="handleUpdate" :loading="loading" :disabled="!isModified">保存更改</el-button>
         </el-form-item>
       </el-form>
     </el-card>
@@ -36,7 +36,7 @@
 </template>
 
 <script setup>
-import { reactive, onMounted, ref } from 'vue'
+import { reactive, onMounted, ref, computed } from 'vue'
 import { useUserStore } from '@/store/user'
 import { updateUser } from '@/api/user'
 import { ElMessage } from 'element-plus'
@@ -51,6 +51,12 @@ const userInfo = reactive({
   email: '',
   avatarUrl: '',
   userLevelValue: ''
+})
+
+const isModified = computed(() => {
+  return userInfo.nickname !== userStore.nickname ||
+         userInfo.email !== userStore.email ||
+         userInfo.avatarUrl !== userStore.avatar
 })
 
 const initData = () => {
@@ -75,9 +81,15 @@ onMounted(async () => {
 })
 
 const handleUpdate = () => {
-  // 邮箱验证
+  // 邮箱非空验证
+  if (!userInfo.email || !userInfo.email.trim()) {
+    ElMessage.error('邮箱不能为空')
+    return
+  }
+
+  // 邮箱格式验证
   const emailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-  if (userInfo.email && !emailRegex.test(userInfo.email)) {
+  if (!emailRegex.test(userInfo.email)) {
     ElMessage.error('邮箱格式不合法')
     return
   }

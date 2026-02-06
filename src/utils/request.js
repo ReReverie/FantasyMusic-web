@@ -61,8 +61,8 @@ service.interceptors.response.use(
     }
 
     // 根据后端约定的状态码判断
-    // 假设 code === 1 为成功
-    if (res.code !== 1) {
+    // 兼容 code === 1 和 code === 200 为成功
+    if (res.code !== 1 && res.code !== 200) {
       // 允许通过配置 skipErrorMessage 跳过默认的错误提示
       if (!response.config.skipErrorMessage) {
         ElMessage({
@@ -82,6 +82,12 @@ service.interceptors.response.use(
   error => {
     console.log('err' + error) // for debug
     
+    let message = error.message
+    if (error.response && error.response.data) {
+      // 尝试获取后端返回的具体错误信息 (msg 或 message)
+      message = error.response.data.msg || error.response.data.message || message
+    }
+
     // 允许通过配置 skipErrorMessage 跳过默认的错误提示
     if (!error.config || !error.config.skipErrorMessage) {
       // 检查是否是网络错误
@@ -89,12 +95,15 @@ service.interceptors.response.use(
         ElMessage.error('无法连接到服务器，请检查后端服务是否启动，或者代理配置是否生效')
       } else {
         ElMessage({
-          message: error.message,
+          message: message,
           type: 'error',
           duration: 5 * 1000
         })
       }
     }
+    
+    // 更新 error 对象的信息，以便后续 catch 块能获取到正确的错误信息
+    error.message = message
     error.isHandled = true
     return Promise.reject(error)
   }
