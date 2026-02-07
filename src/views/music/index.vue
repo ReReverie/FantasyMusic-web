@@ -179,6 +179,7 @@
 
       <div class="pagination-container">
         <el-pagination
+          background
           v-model:current-page="currentPage"
           v-model:page-size="pageSize"
           :page-sizes="[20, 50, 100]"
@@ -192,7 +193,7 @@
     </el-card>
 
     <!-- 收藏到歌单弹窗 -->
-    <el-dialog v-model="collectDialogVisible" title="添加到歌单" width="30%">
+    <el-dialog v-model="collectDialogVisible" title="添加到歌单" :width="isMobile ? '90%' : '30%'">
       <div v-if="myMusicLists.length === 0">暂无歌单，请先去创建歌单</div>
       <el-scrollbar max-height="300px" v-else>
         <div 
@@ -845,10 +846,68 @@ const formatDuration = (ms) => {
   }
 }
 
-.pagination-container {
-  margin-top: 20px;
+</style>
+
+<style>
+/* Custom Pagination Styles - Non-scoped to override Element Plus */
+.music-container .pagination-container {
+  margin-top: 24px;
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
+  padding: 16px;
+  background: var(--card-bg);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border);
+}
+
+.music-container .el-pagination {
+  --el-pagination-bg-color: transparent;
+  --el-pagination-button-bg-color: transparent;
+  --el-pagination-hover-color: var(--primary-color);
+  font-weight: 500;
+}
+
+.music-container .el-pagination.is-background .el-pager li:not(.is-disabled).is-active {
+  background-color: var(--primary-color) !important;
+  color: white !important;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+  font-weight: 700;
+  border: none;
+}
+
+.music-container .el-pagination.is-background .el-pager li {
+  background-color: transparent !important;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  margin: 0 4px;
+  transition: all 0.3s;
+}
+
+.music-container .el-pagination.is-background .btn-prev,
+.music-container .el-pagination.is-background .btn-next {
+  background-color: transparent !important;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  transition: all 0.3s;
+}
+
+.music-container .el-pagination.is-background .el-pager li:not(.is-disabled):hover {
+  color: var(--primary-color);
+  background-color: var(--menu-hover-bg) !important;
+}
+
+.music-container .el-pagination.is-background .btn-prev:hover,
+.music-container .el-pagination.is-background .btn-next:hover {
+  color: var(--primary-color);
+  background-color: var(--menu-hover-bg) !important;
+}
+
+.music-container .el-pagination.is-background .btn-prev:disabled,
+.music-container .el-pagination.is-background .btn-next:disabled {
+  background-color: transparent !important;
+  opacity: 0.5;
 }
 </style>
 

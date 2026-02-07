@@ -78,7 +78,7 @@
               <div class="code-row">
                 <el-input v-model="registerForm.code" placeholder="验证码" class="fantasy-input" />
                 <el-button :disabled="countdown > 0" @click="handleSendCode" type="primary" plain class="code-btn" round>
-                  {{ countdown > 0 ? `${countdown}s` : '获取验证码' }}
+                  {{ countdown > 0 ? `${countdown}s` : '获取邮箱验证码' }}
                 </el-button>
               </div>
             </el-form-item>
@@ -109,7 +109,7 @@
               <div class="code-row">
                 <el-input v-model="resetForm.code" placeholder="验证码" class="fantasy-input" />
                 <el-button :disabled="resetCountdown > 0" @click="handleSendResetCode" type="primary" plain class="code-btn" round>
-                  {{ resetCountdown > 0 ? `${resetCountdown}s` : '获取验证码' }}
+                  {{ resetCountdown > 0 ? `${resetCountdown}s` : '获取邮箱验证码' }}
                 </el-button>
               </div>
             </el-form-item>
@@ -130,6 +130,10 @@
           </div>
         </div>
       </transition>
+    </div>
+
+    <div class="login-footer">
+      © 2026 ReverieSE
     </div>
   </div>
 </template>
@@ -736,5 +740,15 @@ onUnmounted(() => {
 .fade-slide-leave-to {
   opacity: 0;
   transform: translateY(-20px);
+}
+
+.login-footer {
+  position: absolute;
+  bottom: 20px;
+  width: 100%;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 12px;
+  z-index: 10;
 }
 </style>

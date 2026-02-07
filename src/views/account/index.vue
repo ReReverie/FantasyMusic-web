@@ -22,7 +22,17 @@
           <el-input v-model="userInfo.nickname" />
         </el-form-item>
         <el-form-item label="邮箱">
-          <el-input v-model="userInfo.email" />
+          <div style="width: 100%;">
+            <el-input v-model="userInfo.email" />
+            <div style="margin-top: 10px;">
+              <el-alert
+                title="重要提示：请确保填写的邮箱真实有效！这是您找回账号密码的唯一途径，若邮箱不可用可能导致账号永久丢失。"
+                type="warning"
+                :closable="false"
+                show-icon
+              />
+            </div>
+          </div>
         </el-form-item>
         <el-form-item label="用户等级">
            <el-tag type="success">{{ userInfo.userLevelValue || '普通用户' }}</el-tag>

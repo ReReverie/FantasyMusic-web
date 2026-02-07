@@ -7,6 +7,10 @@
         </keep-alive>
       </transition>
     </router-view>
+
+    <div class="app-footer">
+      © 2026 ReverieSE
+    </div>
   </section>
 </template>
 
@@ -63,5 +67,14 @@ watch(
     padding: 12px;
     padding-bottom: 140px; /* Ensure enough space for taller mobile footer */
   }
+}
+
+.app-footer {
+  text-align: center;
+  padding: 20px 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+  opacity: 0.8;
+  width: 100%;
 }
 </style>
