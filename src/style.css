@@ -88,7 +88,40 @@ html.dark {
 
 *, *:before, *:after {
   box-sizing: border-box;
+}
+
+/* Optimize transitions: Avoid applying to * to prevent rendering storms */
+body,
+.app-wrapper,
+.sidebar-container,
+.navbar,
+.footer-player,
+.glass-panel,
+.el-card,
+.el-dialog,
+.el-button,
+.el-input__wrapper,
+.el-textarea__inner,
+.el-select__wrapper,
+.el-tag,
+.el-dropdown-menu,
+.el-menu,
+.el-sub-menu__title,
+.el-menu-item {
   transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Text elements: focus on color */
+h1, h2, h3, h4, h5, h6, p, span, a, i, .el-icon {
+  transition: color 0.3s ease;
+}
+
+/* Table: lightweight transition */
+.el-table, 
+.el-table__row, 
+.el-table__cell,
+.el-table__header {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
 html, body, #app {
