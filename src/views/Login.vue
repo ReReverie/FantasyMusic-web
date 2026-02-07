@@ -18,10 +18,10 @@
       <transition name="fade-slide" mode="out-in">
         <div v-if="viewMode === 'login'" key="login" class="form-wrapper">
           <el-form :model="loginForm" :rules="rules" ref="loginFormRef" size="large">
-            <el-form-item prop="username">
+            <el-form-item prop="account">
               <el-input 
-                v-model="loginForm.username" 
-                placeholder="用户名 / 账号" 
+                v-model="loginForm.account" 
+                placeholder="用户名 / 邮箱" 
                 :prefix-icon="User"
                 class="fantasy-input"
               />
@@ -167,7 +167,7 @@ let timer = null
 let resetTimer = null
 
 const loginForm = reactive({
-  username: '',
+  account: '',
   password: '',
   captchaCode: '',
   captchaUuid: ''
@@ -189,7 +189,7 @@ const resetForm = reactive({
 })
 
 const rules = {
-  username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
+  account: [{ required: true, message: '请输入用户名或邮箱', trigger: 'blur' }],
   password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
   captchaCode: [{ required: true, message: '请输入验证码', trigger: 'blur' }]
 }
