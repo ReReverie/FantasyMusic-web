@@ -45,20 +45,22 @@ export function searchMusicInList(id, params) {
 }
 
 // 添加音乐到歌单
-export function addMusicToMusicList(data) {
+export function addMusicToMusicList(data, config = {}) {
   return request({
     url: '/musiclist/addMusic',
     method: 'post',
-    data
+    data,
+    ...config
   })
 }
 
 // 批量添加音乐到歌单
-export function batchAddMusicToMusicList(data) {
+export function batchAddMusicToMusicList(data, config = {}) {
   return request({
     url: '/musiclist/batchAddMusic',
     method: 'post',
-    data
+    data,
+    ...config
   })
 }
 

@@ -449,7 +449,7 @@ const handleAddToMusicList = async (musicListId) => {
       await batchAddMusicToMusicList({
         musicListId,
         musicIds
-      })
+      }, { skipErrorMessage: true })
       ElMessage.success('批量收藏成功')
       // 清空选择并退出批量模式
       multipleSelection.value = []
@@ -458,13 +458,25 @@ const handleAddToMusicList = async (musicListId) => {
       await addMusicToMusicList({
         musicListId,
         musicId: currentMusicId.value
-      })
+      }, { skipErrorMessage: true })
       ElMessage.success('收藏成功')
     }
     collectDialogVisible.value = false
   } catch (error) {
     console.error(error)
-    ElMessage.error('收藏失败')
+    const msg = error.message || '收藏失败'
+    // 检查是否为重复添加错误 (Duplicate entry 或 backend 自定义提示)
+    if (msg.includes('Duplicate') || msg.includes('duplicate') || msg.includes('exist') || msg.includes('已存在')) {
+      if (isBatchCollectAction.value) {
+         ElMessage.warning('部分或全部歌曲已在歌单中，收藏失败')
+      } else {
+         const music = musicList.value.find(m => m.id === currentMusicId.value)
+         const title = music ? music.title : '歌曲'
+         ElMessage.warning(`${title} 已在歌单中，收藏失败!`)
+      }
+    } else {
+      ElMessage.error(msg)
+    }
   } finally {
     isBatchCollectAction.value = false
   }
