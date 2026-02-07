@@ -152,7 +152,7 @@ defineEmits(['toggle-sidebar'])
   font-size: 18px;
   vertical-align: middle;
   line-height: 1;
-  background: linear-gradient(to right, #8b5cf6, #ec4899);
+  background: var(--brand-gradient);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }

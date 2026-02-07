@@ -54,13 +54,13 @@
         <div class="controls-buttons">
           <el-tooltip content="上一首" placement="top" :show-after="500" :disabled="isMobile">
             <el-button link class="control-btn" @click="playerStore.playPrev">
-              <el-icon :size="24"><ArrowLeft /></el-icon>
+              <el-icon :size="22"><ArrowLeft /></el-icon>
             </el-button>
           </el-tooltip>
 
           <el-tooltip :content="playerStore.isPlaying ? '暂停' : '播放'" placement="top" :show-after="500" :disabled="isMobile">
             <el-button link class="control-btn play-btn" @click="playerStore.togglePlay">
-              <el-icon :size="40">
+              <el-icon :size="34">
                 <VideoPause v-if="playerStore.isPlaying" />
                 <VideoPlay v-else />
               </el-icon>
@@ -69,7 +69,7 @@
 
           <el-tooltip content="下一首" placement="top" :show-after="500" :disabled="isMobile">
             <el-button link class="control-btn" @click="playerStore.playNext()">
-              <el-icon :size="24"><ArrowRight /></el-icon>
+              <el-icon :size="22"><ArrowRight /></el-icon>
             </el-button>
           </el-tooltip>
         </div>
@@ -645,8 +645,9 @@ onUnmounted(() => {
 .controls-buttons {
     display: flex;
     align-items: center;
-    gap: 20px;
-    margin-bottom: 4px;
+    gap: 24px;
+    margin-bottom: 2px;
+    margin-top: 6px;
 }
 
 .control-btn {

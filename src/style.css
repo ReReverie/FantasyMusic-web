@@ -44,6 +44,9 @@
   /* Radius */
   --radius-md: 12px;
   --radius-lg: 20px;
+
+  /* Brand Gradient */
+  --brand-gradient: linear-gradient(to right, #8b5cf6, #ec4899);
 }
 
 html.dark {
@@ -78,6 +81,9 @@ html.dark {
   --menu-text: #e5e7eb;
   --menu-hover-bg: rgba(255, 255, 255, 0.1);
   --navbar-bg: rgba(30, 30, 30, 0.8);
+  
+  /* Brand Gradient Dark */
+  --brand-gradient: linear-gradient(to right, #e9d5ff, #fbcfe8);
 }
 
 *, *:before, *:after {

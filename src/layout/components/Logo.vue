@@ -59,7 +59,10 @@ const logo = ref(logoImg)
 .sidebar-title {
   display: inline-block;
   margin: 0;
-  color: #fff;
+  background: var(--brand-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: var(--primary-color);
   font-weight: 600;
   line-height: 50px;
   font-size: 14px;
