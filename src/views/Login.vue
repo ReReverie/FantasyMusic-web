@@ -9,7 +9,7 @@
     <div class="login-container glass-panel">
       <div class="login-header">
         <div class="logo-area">
-          <img src="https://wpimg.wallstcn.com/69a1c46c-eb1c-4b46-8bd4-e9e686ef5251.png" alt="Logo" class="logo-img" />
+          <img :src="logoImg" alt="Logo" class="logo-img" />
           <h1 class="app-title">Fantasy Music</h1>
         </div>
       </div>
@@ -135,6 +135,7 @@
 </template>
 
 <script setup>
+import logoImg from '@/assets/logo.svg'
 import { ref, reactive, onUnmounted, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'

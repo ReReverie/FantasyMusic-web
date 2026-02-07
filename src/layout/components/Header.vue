@@ -51,7 +51,8 @@ import { ref, onMounted } from 'vue'
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
-const logo = 'https://wpimg.wallstcn.com/69a1c46c-eb1c-4b46-8bd4-e9e686ef5251.png'
+import logoImg from '@/assets/logo.svg'
+const logo = logoImg
 
 const isDark = ref(false)
 
