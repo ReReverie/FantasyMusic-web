@@ -59,7 +59,13 @@ router.beforeEach(async (to, from, next) => {
   }
 })
 
-router.afterEach(() => {
+router.afterEach((to) => {
   // finish progress bar
   NProgress.done()
+
+  // Hide path for specific routes
+  const hidePathRoutes = ['/music', '/musiclist', '/account', '/password', '/home', '/login']
+  if (hidePathRoutes.some(path => to.path === path || to.path.startsWith(path + '/'))) {
+    window.history.replaceState(null, '', '/')
+  }
 })

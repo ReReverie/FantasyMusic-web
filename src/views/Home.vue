@@ -142,7 +142,7 @@ export default {
 </script>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onActivated } from 'vue'
 import { useUserStore } from '@/store/user'
 import { getHomeData } from '@/api/home'
 import { usePlayerStore } from '@/store/player'
@@ -158,6 +158,10 @@ const playlists = ref([])
 const latestMusic = ref([])
 
 onMounted(async () => {
+  await fetchData()
+})
+
+onActivated(async () => {
   await fetchData()
 })
 

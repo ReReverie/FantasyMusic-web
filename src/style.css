@@ -12,7 +12,7 @@
   --sidebar-bg: rgba(255, 255, 255, 0.8);
   --card-bg: rgba(255, 255, 255, 0.8);
   --table-header-bg: rgba(255, 255, 255, 0.5);
-  --table-hover-bg: rgba(255, 255, 255, 0.5);
+  --table-hover-bg: rgba(139, 92, 246, 0.1); /* Violet Tint for hover */
   --input-bg: #ffffff;
   --input-border: #e5e7eb;
   
@@ -58,7 +58,7 @@ html.dark {
   --sidebar-bg: rgba(30, 30, 30, 0.8);
   --card-bg: rgba(30, 30, 30, 0.8);
   --table-header-bg: rgba(255, 255, 255, 0.05);
-  --table-hover-bg: rgba(255, 255, 255, 0.1);
+  --table-hover-bg: rgba(139, 92, 246, 0.15); /* Violet Tint for Dark Mode Hover */
   --input-bg: #1d1e1f;
   --input-border: #363637;
   
@@ -196,6 +196,11 @@ a:hover {
 
 .el-table--enable-row-hover .el-table__body tr:hover > td.el-table__cell {
   background-color: var(--table-hover-bg) !important;
+}
+
+/* Distinct Selection Effect: Left Accent Border for Table Rows */
+.el-table--enable-row-hover .el-table__body tr:hover > td.el-table__cell:first-child {
+  box-shadow: inset 4px 0 0 var(--primary-color) !important;
 }
 
 .el-table__inner-wrapper::before {
