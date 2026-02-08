@@ -6,7 +6,19 @@
       v-if="isMobile && mobileHidden && hasMusic"
       @click.stop="showMobilePlayer"
     >
-      <el-icon class="pulse-icon"><Headset /></el-icon>
+      <div class="cd-wrapper" :class="{ 'is-spinning': playerStore.isPlaying }">
+        <el-image 
+          class="cd-cover"
+          :src="getCoverUrl(playerStore.currentMusic)" 
+          fit="cover"
+        >
+          <template #error>
+             <div class="cd-placeholder">
+               <el-icon><Headset /></el-icon>
+             </div>
+          </template>
+        </el-image>
+      </div>
     </div>
 
     <div 
@@ -609,6 +621,16 @@ onUnmounted(() => {
   flex-shrink: 0;
 }
 
+.cover-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(128, 128, 128, 0.1);
+  color: #909399;
+}
+
 .music-info {
   flex: 1;
   overflow: hidden;
@@ -876,20 +898,67 @@ onUnmounted(() => {
   .mobile-toggle-btn {
     position: fixed;
     bottom: 20px;
-    right: 20px; /* Or center: left: 50%; transform: translateX(-50%); */
-    width: 48px;
-    height: 48px;
+    right: 20px;
+    width: 60px; /* Slightly larger for CD effect */
+    height: 60px;
     border-radius: 50%;
-    background: var(--primary-color);
-    color: white;
+    /* background: var(--primary-color); Remove solid background */
+    background: transparent; 
+    /* color: white; */
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 2001; /* Higher than sidebar overlay */
-    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+    z-index: 2001;
+    /* box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4); Remove default shadow */
     cursor: pointer;
     animation: bounce-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    pointer-events: auto; /* Enable clicks */
+    pointer-events: auto;
+  }
+
+  /* CD Wrapper Style */
+  .cd-wrapper {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    padding: 3px; /* Border width */
+    background: linear-gradient(45deg, #8b5cf6, #ec4899); /* Gradient border */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Inner CD Cover */
+  .cd-cover {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #1a1a1a; /* Dark border between gradient and image */
+    background: #000;
+  }
+  
+  .cd-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #333;
+    color: #fff;
+    font-size: 24px;
+  }
+
+  /* Spinning Animation */
+  .cd-wrapper.is-spinning {
+    animation: spin 10s linear infinite;
+  }
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
   }
 
   @keyframes bounce-in {

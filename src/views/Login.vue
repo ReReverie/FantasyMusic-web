@@ -17,7 +17,7 @@
       <!-- 登录表单 -->
       <transition name="fade-slide" mode="out-in">
         <div v-if="viewMode === 'login'" key="login" class="form-wrapper">
-          <el-form :model="loginForm" :rules="rules" ref="loginFormRef" size="large">
+          <el-form :model="loginForm" :rules="rules" ref="loginFormRef" size="large" @submit.prevent>
             <el-form-item prop="account">
               <el-input 
                 v-model="loginForm.account" 
@@ -67,7 +67,7 @@
 
         <!-- 注册表单 -->
         <div v-else-if="viewMode === 'register'" key="register" class="form-wrapper">
-          <el-form :model="registerForm" :rules="registerRules" ref="registerFormRef" size="large">
+          <el-form :model="registerForm" :rules="registerRules" ref="registerFormRef" size="large" @submit.prevent>
             <el-form-item prop="username">
               <el-input v-model="registerForm.username" placeholder="设置用户名" :prefix-icon="User" class="fantasy-input" />
             </el-form-item>
@@ -77,7 +77,7 @@
             <el-form-item prop="code">
               <div class="code-row">
                 <el-input v-model="registerForm.code" placeholder="验证码" class="fantasy-input" />
-                <el-button :disabled="countdown > 0" @click="handleSendCode" type="primary" plain class="code-btn" round>
+                <el-button :disabled="countdown > 0" @click="handleSendCode" :loading="codeLoading" type="primary" plain class="code-btn" round>
                   {{ countdown > 0 ? `${countdown}s` : '获取邮箱验证码' }}
                 </el-button>
               </div>
@@ -101,14 +101,14 @@
 
         <!-- 重置密码表单 -->
         <div v-else-if="viewMode === 'reset'" key="reset" class="form-wrapper">
-          <el-form :model="resetForm" :rules="resetRules" ref="resetFormRef" size="large">
+          <el-form :model="resetForm" :rules="resetRules" ref="resetFormRef" size="large" @submit.prevent>
             <el-form-item prop="account">
               <el-input v-model="resetForm.account" placeholder="用户名或邮箱" :prefix-icon="User" class="fantasy-input" />
             </el-form-item>
             <el-form-item prop="code">
               <div class="code-row">
                 <el-input v-model="resetForm.code" placeholder="验证码" class="fantasy-input" />
-                <el-button :disabled="resetCountdown > 0" @click="handleSendResetCode" type="primary" plain class="code-btn" round>
+                <el-button :disabled="resetCountdown > 0" @click="handleSendResetCode" :loading="resetCodeLoading" type="primary" plain class="code-btn" round>
                   {{ resetCountdown > 0 ? `${resetCountdown}s` : '获取邮箱验证码' }}
                 </el-button>
               </div>
@@ -152,6 +152,8 @@ const router = useRouter()
 const userStore = useUserStore()
 
 const viewMode = ref('login')
+const codeLoading = ref(false)
+const resetCodeLoading = ref(false)
 const loading = ref(false)
 const rememberMe = ref(false)
 
@@ -258,10 +260,10 @@ const refreshCaptcha = () => {
 const handleSendCode = () => {
   registerFormRef.value.validateField('email', (valid) => {
     if (valid) {
-      loading.value = true
+      codeLoading.value = true
       sendEmailCode(registerForm.email).then(() => {
         ElMessage.success('验证码已发送，请检查邮箱')
-        loading.value = false
+        codeLoading.value = false
         
         const expireTime = Date.now() + 60 * 1000
         localStorage.setItem('register_code_expire_time', expireTime)
@@ -275,7 +277,7 @@ const handleSendCode = () => {
           }
         }, 1000)
       }).catch(err => {
-        loading.value = false
+        codeLoading.value = false
       })
     }
   })
@@ -284,10 +286,10 @@ const handleSendCode = () => {
 const handleSendResetCode = () => {
   resetFormRef.value.validateField('account', (valid) => {
     if (valid) {
-      loading.value = true
+      resetCodeLoading.value = true
       sendPasswordResetCode(resetForm.account).then(() => {
         ElMessage.success('验证码已发送，请检查邮箱')
-        loading.value = false
+        resetCodeLoading.value = false
         
         const expireTime = Date.now() + 60 * 1000
         localStorage.setItem('reset_code_expire_time', expireTime)
@@ -301,7 +303,7 @@ const handleSendResetCode = () => {
           }
         }, 1000)
       }).catch(err => {
-        loading.value = false
+        resetCodeLoading.value = false
       })
     }
   })
@@ -316,10 +318,10 @@ const handleLogin = () => {
         saveRememberMe() // Save credentials if rememberMe is checked
         const redirectPath = sessionStorage.getItem('redirect_path')
         if (redirectPath && redirectPath.startsWith('/') && !redirectPath.startsWith('//') && !redirectPath.includes('http') && !redirectPath.includes('hybridaction')) {
-          router.push(redirectPath)
+          router.replace(redirectPath)
           sessionStorage.removeItem('redirect_path')
         } else {
-          router.push('/')
+          router.replace('/')
         }
         loading.value = false
       }).catch((error) => {

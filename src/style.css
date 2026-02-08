@@ -199,6 +199,34 @@ a:hover {
   background-color: var(--input-bg) !important;
 }
 
+/* Mobile optimizations */
+@media screen and (max-width: 768px) {
+  /* Prevent auto-zoom on iOS inputs by enforcing 16px font size */
+  .el-input__inner, 
+  .el-textarea__inner, 
+  .el-select__input,
+  input, 
+  textarea,
+  select {
+    font-size: 16px !important;
+    max-width: 100%;
+  }
+  
+  /* Ensure no horizontal scroll on mobile */
+  html, body {
+    width: 100vw;
+    overflow-x: hidden;
+    /* Prevent iOS rubber banding and overscroll */
+    overscroll-behavior-x: none;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* Force fix inputs inside other components */
+  .el-input .el-input__inner {
+      font-size: 16px !important;
+  }
+}
+
 .el-input__wrapper:hover, .el-input__wrapper.is-focus {
   box-shadow: 0 0 0 1px var(--primary-color) inset !important;
 }

@@ -96,12 +96,12 @@
           <div class="card-right" v-if="!isBatchMode">
             <el-button size="small" type="primary" plain circle :icon="VideoPlay" @click.stop="handlePlay(item)" />
             <el-dropdown trigger="click" @click.stop>
-              <el-button size="small" plain circle :icon="Plus" style="margin-left: 8px" />
+              <el-button size="small" plain circle :icon="Plus" style="margin-left: 8px" @click.stop />
               <template #dropdown>
                 <el-dropdown-menu>
                   <el-dropdown-item :icon="Download" @click="handleDownload(item)">下载</el-dropdown-item>
                   <el-dropdown-item :icon="Star" @click="handleOpenCollect(item)">收藏</el-dropdown-item>
-                  <el-dropdown-item v-if="isAdmin" :icon="Delete" @click="handleDelete(item)" divided>删除</el-dropdown-item>
+                  <el-dropdown-item v-if="isAdmin" :icon="Delete" @click="handleMobileDelete(item)" divided>删除</el-dropdown-item>
                 </el-dropdown-menu>
               </template>
             </el-dropdown>
@@ -613,6 +613,20 @@ const handleDownload = async (row) => {
   }
 }
 
+const handleMobileDelete = (row) => {
+  ElMessageBox.confirm(
+    '确定要删除这首歌曲吗？',
+    '提示',
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    }
+  ).then(() => {
+    handleDelete(row)
+  }).catch(() => {})
+}
+
 const handleDelete = async (row) => {
   try {
     await deleteMusic(row.id)
@@ -670,6 +684,9 @@ const formatDuration = (ms) => {
 .music-container {
   max-width: 100%;
   overflow-x: hidden;
+  /* 解决移动端可能的横向溢出 */
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .search-bar {

@@ -265,6 +265,14 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+.musiclist-container {
+  max-width: 100%;
+  overflow-x: hidden;
+  /* 解决移动端可能的横向溢出 */
+  width: 100%;
+  box-sizing: border-box;
+}
+
 .card-header {
   display: flex;
   justify-content: space-between;

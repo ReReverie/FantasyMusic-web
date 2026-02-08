@@ -112,7 +112,7 @@
           <div class="card-right" v-if="!isBatchMode">
             <el-button size="small" type="primary" plain circle :icon="VideoPlay" @click.stop="handlePlay(item)" />
             <el-dropdown trigger="click" @click.stop>
-              <el-button size="small" plain circle :icon="MoreFilled" style="margin-left: 8px" />
+              <el-button size="small" plain circle :icon="MoreFilled" style="margin-left: 8px" @click.stop />
               <template #dropdown>
                 <el-dropdown-menu>
                   <el-dropdown-item :icon="Download" @click="handleDownload(item)">下载</el-dropdown-item>
