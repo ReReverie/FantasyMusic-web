@@ -120,12 +120,22 @@ import { useRouter } from 'vue-router'
 import { UploadFilled, ArrowLeft, Loading } from '@element-plus/icons-vue'
 import { useUploadStore } from '@/store/upload'
 import { storeToRefs } from 'pinia'
+import { ElMessage } from 'element-plus'
 
 const router = useRouter()
 const uploadStore = useUploadStore()
 const { fileList, isUploading, uploadingCount } = storeToRefs(uploadStore)
 
 const handleFileChange = (uploadFile) => {
+  const allowedExtensions = ['mp3', 'flac', 'wav', 'ogg', 'm4a']
+  const fileName = uploadFile.name.toLowerCase()
+  const extension = fileName.substring(fileName.lastIndexOf('.') + 1)
+  
+  if (!allowedExtensions.includes(extension)) {
+    ElMessage.error(`不支持的文件格式: ${uploadFile.name}。请上传 MP3, FLAC, WAV, OGG, M4A 格式的音频文件。`)
+    return
+  }
+  
   uploadStore.addFile(uploadFile)
 }
 

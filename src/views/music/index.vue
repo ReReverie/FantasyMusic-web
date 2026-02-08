@@ -580,8 +580,14 @@ const handleDownload = async (row) => {
     
     // 1. 如果后端返回的是 URL 字符串 (OSS 签名链接)
     if (typeof response === 'string' && (response.startsWith('http') || response.startsWith('/'))) {
+        let downloadUrl = response
+        // 强制升级 HTTP 为 HTTPS
+        if (downloadUrl.startsWith('http://')) {
+            downloadUrl = downloadUrl.replace('http://', 'https://')
+        }
+        
         const link = document.createElement('a')
-        link.href = response
+        link.href = downloadUrl
         // 对于 OSS 签名链接，通常 Content-Disposition 已包含在签名或元数据中
         // download 属性在跨域时可能无效，但如果 headers 正确，浏览器会下载
         link.setAttribute('download', '') 
