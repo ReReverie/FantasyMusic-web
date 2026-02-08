@@ -735,9 +735,9 @@ onUnmounted(() => {
     right: 0;
     width: 320px;
     background: var(--glass-bg);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-radius: var(--radius-md);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: var(--radius-md);
     box-shadow: var(--shadow-lg);
     border: 1px solid var(--glass-border);
     display: flex;
@@ -747,13 +747,14 @@ onUnmounted(() => {
 
 .playlist-header {
     padding: 12px 16px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    border-bottom: 1px solid var(--glass-border);
     display: flex;
     justify-content: space-between;
     align-items: center;
     font-size: 14px;
     font-weight: 600;
-    background: rgba(245, 247, 250, 0.5);
+    background: var(--table-header-bg);
+    color: var(--text-main);
 }
 
 .playlist-ul {
@@ -769,16 +770,17 @@ onUnmounted(() => {
     justify-content: space-between;
     cursor: pointer;
     transition: background 0.2s;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+    border-bottom: 1px solid var(--glass-border);
+    color: var(--text-main);
 }
 
 .playlist-item:hover {
-    background: rgba(0, 0, 0, 0.03);
+    background: var(--menu-hover-bg);
 }
 
 .playlist-item.active {
-    color: #409EFF;
-    background: rgba(64, 158, 255, 0.1);
+    color: var(--primary-color);
+    background: rgba(139, 92, 246, 0.1);
 }
 
 .song-info {
@@ -810,35 +812,7 @@ onUnmounted(() => {
     font-size: 13px;
 }
 
-/* 适配暗黑模式 */
-@media (prefers-color-scheme: dark) {
-  .footer-player, .playlist-drawer {
-    background: rgba(30, 30, 30, 0.75);
-    border-color: rgba(255, 255, 255, 0.1);
-  }
-  
-  .music-info .title, .control-btn, .time-text {
-    color: #E5EAF3;
-  }
-  
-  .music-info .artist, .playlist-header, .playlist-item {
-    color: #A3A6AD;
-  }
-  
-  .playlist-header {
-      background: rgba(255, 255, 255, 0.05);
-      border-bottom-color: rgba(255, 255, 255, 0.05);
-  }
-  
-  .playlist-item:hover {
-      background: rgba(255, 255, 255, 0.05);
-  }
-  
-  .playlist-item.active {
-      background: rgba(64, 158, 255, 0.2);
-      color: #409EFF;
-  }
-}
+
 
 /* 移动端适配 */
 @media (max-width: 768px) {
@@ -859,22 +833,24 @@ onUnmounted(() => {
     border-top: 2px solid var(--primary-color) !important; /* Add distinct top border */
     padding: 12px 16px !important;
     flex-wrap: wrap;
-    background: #2D2D2D !important; /* Dark grey background */
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3) !important; /* Darker shadow */
-    color: #ffffff; /* Default text color for mobile */
+    background: var(--glass-bg) !important; /* Use theme variable */
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1) !important;
+    color: var(--text-main); /* Use theme variable */
   }
 
-  /* Adjust text colors for mobile dark mode */
+  /* Adjust text colors for mobile (use theme variables) */
   .music-info .title {
-    color: #ffffff !important;
+    color: var(--text-main) !important;
   }
   
   .music-info .artist {
-    color: #bbbbbb !important;
+    color: var(--text-secondary) !important;
   }
   
   .control-btn {
-    color: #ffffff !important;
+    color: var(--text-main) !important;
   }
   
   .control-btn:hover {
@@ -882,8 +858,10 @@ onUnmounted(() => {
   }
   
   .time-text {
-    color: #dddddd !important;
+    color: var(--text-secondary) !important;
   }
+
+
 
   /* Force visible on mobile */
   /* Replaced by .mobile-hidden logic below */
@@ -921,8 +899,8 @@ onUnmounted(() => {
     height: 100%;
     border-radius: 50%;
     padding: 3px; /* Border width */
-    background: linear-gradient(45deg, #8b5cf6, #ec4899); /* Gradient border */
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    background: var(--brand-gradient); /* Use brand gradient variable */
+    box-shadow: var(--shadow-glass);
     position: relative;
     overflow: hidden;
     display: flex;
@@ -936,8 +914,8 @@ onUnmounted(() => {
     height: 100%;
     border-radius: 50%;
     object-fit: cover;
-    border: 2px solid #1a1a1a; /* Dark border between gradient and image */
-    background: #000;
+    border: 2px solid var(--bg-color); /* Adapt to theme background */
+    background: var(--card-bg);
   }
   
   .cd-placeholder {
@@ -946,8 +924,8 @@ onUnmounted(() => {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #333;
-    color: #fff;
+    background: var(--table-header-bg);
+    color: var(--text-placeholder);
     font-size: 24px;
   }
 

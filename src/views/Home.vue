@@ -65,7 +65,7 @@
           <button class="text-btn" @click="$router.push('/musiclist')">更多 <el-icon><ArrowRight /></el-icon></button>
         </div>
 
-        <div class="playlist-grid" v-if="playlists.length > 0">
+        <div class="playlist-grid">
           <div class="playlist-card" v-for="list in playlists" :key="list.id" @click="$router.push(`/musiclist/${list.id}`)">
             <div class="playlist-cover">
               <el-image :src="getPlaylistCover(list)" fit="cover" lazy>
@@ -84,8 +84,20 @@
               <div class="playlist-meta">{{ list.musics ? list.musics.length : (list.trackCount || 0) }} 首歌曲</div>
             </div>
           </div>
+          
+          <!-- 创建歌单卡片 -->
+          <div class="playlist-card create-card" @click="handleCreate">
+            <div class="playlist-cover create-cover">
+              <div class="create-content">
+                <el-icon class="plus-icon"><Plus /></el-icon>
+              </div>
+            </div>
+            <div class="playlist-info">
+              <div class="playlist-title">创建歌单</div>
+              <div class="playlist-meta">新建一个歌单</div>
+            </div>
+          </div>
         </div>
-        <el-empty v-else description="暂无歌单" :image-size="100" />
       </section>
       
       <!-- 右侧：最新音乐 -->
@@ -132,6 +144,23 @@
         <el-empty v-else description="暂无新歌" :image-size="80" />
       </section>
     </div>
+    <!-- 创建歌单弹窗 -->
+    <el-dialog v-model="createDialogVisible" title="创建歌单" width="30%">
+      <el-form :model="createForm" label-width="80px" @submit.prevent>
+        <el-form-item label="歌单名称">
+          <el-input v-model="createForm.title" placeholder="请输入歌单名称" />
+        </el-form-item>
+        <el-form-item label="简介">
+          <el-input v-model="createForm.description" type="textarea" placeholder="请输入简介" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="createDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="confirmCreate">确定</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -142,11 +171,14 @@ export default {
 </script>
 
 <script setup>
-import { ref, onMounted, onActivated } from 'vue'
+import { ref, onMounted, onActivated, reactive } from 'vue'
 import { useUserStore } from '@/store/user'
 import { getHomeData } from '@/api/home'
+import { createMusicList } from '@/api/musiclist'
 import { usePlayerStore } from '@/store/player'
 import { getCoverUrl, getPlaylistCover } from '@/utils/music-utils'
+import { ElMessage } from 'element-plus'
+import { Plus } from '@element-plus/icons-vue'
 
 const userStore = useUserStore()
 const playerStore = usePlayerStore()
@@ -156,6 +188,36 @@ const playlistCount = ref(0)
 const collectedMusicCount = ref(0)
 const playlists = ref([])
 const latestMusic = ref([])
+
+const createDialogVisible = ref(false)
+const createForm = reactive({
+  title: '',
+  description: ''
+})
+
+const handleCreate = () => {
+  createForm.title = ''
+  createForm.description = ''
+  createDialogVisible.value = true
+}
+
+const confirmCreate = async () => {
+  if (!createForm.title) {
+    ElMessage.warning('请输入歌单名称')
+    return
+  }
+  try {
+    await createMusicList({
+      title: createForm.title,
+      description: createForm.description || null
+    })
+    ElMessage.success('创建成功')
+    createDialogVisible.value = false
+    fetchData()
+  } catch (error) {
+    ElMessage.error('创建失败')
+  }
+}
 
 onMounted(async () => {
   await fetchData()
@@ -503,6 +565,48 @@ $primary-color: #667eea;
       .playlist-meta {
         font-size: 12px;
         color: var(--text-secondary);
+      }
+    }
+    
+    /* Create Card Styles */
+    &.create-card {
+      .create-cover {
+        background: var(--table-header-bg);
+        border: 2px dashed var(--glass-border);
+        box-shadow: none;
+        
+        .create-content {
+          width: 100%;
+          height: 100%;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          transition: all 0.3s ease;
+          
+          .plus-icon {
+            font-size: 32px;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+          }
+        }
+      }
+      
+      &:hover {
+        transform: translateY(-5px);
+        
+        .create-cover {
+          border-color: var(--primary-color);
+          background: rgba(102, 126, 234, 0.05);
+          
+          .plus-icon {
+            color: var(--primary-color);
+            transform: scale(1.2);
+          }
+        }
+        
+        .playlist-title {
+          color: var(--primary-color);
+        }
       }
     }
   }

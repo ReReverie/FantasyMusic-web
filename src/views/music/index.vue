@@ -388,11 +388,27 @@ const handleBatchDelete = () => {
 const handleSizeChange = (val) => {
   pageSize.value = val
   fetchMusicList()
+  scrollToTop()
 }
 
 const handleCurrentChange = (val) => {
   currentPage.value = val
   fetchMusicList()
+  scrollToTop()
+}
+
+const scrollToTop = () => {
+  nextTick(() => {
+    // 尝试多种选择器以适应不同的 Element Plus 版本和布局
+    const scrollContainer = document.querySelector('.main-container .el-scrollbar__wrap') || 
+                            document.querySelector('.el-scrollbar__wrap')
+    
+    if (scrollContainer) {
+      scrollContainer.scroll({ top: 0, behavior: 'smooth' })
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  })
 }
 
 const searchQuery = ref({
@@ -681,14 +697,7 @@ const formatDuration = (ms) => {
   color: #f56c6c;
 }
 
-.music-container {
-  max-width: 100%;
-  overflow-x: hidden;
-  /* 解决移动端可能的横向溢出 */
-  width: 100%;
-  box-sizing: border-box;
-}
-
+/* Search Bar Styles */
 .search-bar {
   display: flex;
   flex-wrap: wrap;
@@ -738,7 +747,6 @@ const formatDuration = (ms) => {
   }
 }
 
-/* 移除之前的底部 padding，因为现在由 layout 统一控制 */
 /* Mobile Card List Styles */
 .mobile-music-list {
   display: none;
@@ -773,7 +781,7 @@ const formatDuration = (ms) => {
   .card-left {
     flex-shrink: 0;
     margin-right: 12px;
-    position: relative; /* For selection overlay */
+    position: relative;
   }
   
   .card-cover {
@@ -785,7 +793,7 @@ const formatDuration = (ms) => {
 
   /* Selection Styles */
   .music-card.is-selected {
-    background: rgba(139, 92, 246, 0.15); /* Light violet background */
+    background: rgba(139, 92, 246, 0.15);
     border-color: var(--primary-color);
   }
 
@@ -862,7 +870,6 @@ const formatDuration = (ms) => {
     align-items: center;
   }
 }
-
 </style>
 
 <style>
@@ -884,6 +891,40 @@ const formatDuration = (ms) => {
   --el-pagination-button-bg-color: transparent;
   --el-pagination-hover-color: var(--primary-color);
   font-weight: 500;
+}
+
+/* 收藏弹窗列表样式 (Global) */
+.music-list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--glass-border);
+  transition: background-color 0.2s;
+  color: var(--text-main) !important;
+}
+
+.music-list-item:hover {
+  background-color: var(--menu-hover-bg);
+}
+
+.list-info {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  align-items: center;
+}
+
+.list-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-main) !important;
+}
+
+.list-count {
+  font-size: 12px;
+  color: var(--text-secondary) !important;
 }
 
 .music-container .el-pagination.is-background .el-pager li:not(.is-disabled).is-active {

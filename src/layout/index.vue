@@ -111,6 +111,7 @@ const toggleSidebar = () => {
 
 .main-container {
   flex: 1;
+  min-width: 0; /* Fix flex child overflow issue */
   background-color: transparent;
   height: 100%;
   box-sizing: border-box;

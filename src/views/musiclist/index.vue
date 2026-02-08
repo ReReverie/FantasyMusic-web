@@ -89,7 +89,7 @@
 
     <!-- 创建歌单弹窗 -->
     <el-dialog v-model="dialogVisible" title="创建歌单" width="30%">
-      <el-form :model="form" label-width="80px">
+      <el-form :model="form" label-width="80px" @submit.prevent>
         <el-form-item label="歌单名称">
           <el-input v-model="form.title" placeholder="请输入歌单名称" />
         </el-form-item>

@@ -199,6 +199,26 @@ a:hover {
   background-color: var(--input-bg) !important;
 }
 
+/* Fix Dropdown/Popover Menu Background in Dark Mode */
+html.dark .el-dropdown-menu,
+html.dark .el-popper,
+html.dark .el-popover {
+  background-color: #1d1e1f !important;
+  border-color: #363637 !important;
+  color: #f3f4f6 !important;
+}
+
+html.dark .el-dropdown-menu__item:not(.is-disabled):focus,
+html.dark .el-dropdown-menu__item:not(.is-disabled):hover {
+  background-color: var(--menu-hover-bg) !important;
+  color: var(--primary-color) !important;
+}
+
+html.dark .el-popper__arrow::before {
+  background-color: #1d1e1f !important;
+  border-color: #363637 !important;
+}
+
 /* Mobile optimizations */
 @media screen and (max-width: 768px) {
   /* Prevent auto-zoom on iOS inputs by enforcing 16px font size */

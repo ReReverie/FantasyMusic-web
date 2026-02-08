@@ -66,7 +66,7 @@
           @keyup.enter="handleSearch"
         >
           <template #append>
-            <el-button @click="handleSearch">
+            <el-button @click="handleSearch" class="search-btn">
               <el-icon><Search /></el-icon>
             </el-button>
           </template>
@@ -192,7 +192,7 @@
 
     <!-- 编辑歌单弹窗 -->
     <el-dialog v-model="editDialogVisible" title="编辑歌单信息" width="500px">
-      <el-form :model="editForm" label-width="80px">
+      <el-form :model="editForm" label-width="80px" @submit.prevent>
         <el-form-item label="歌单名称">
           <el-input v-model="editForm.title" placeholder="请输入歌单名称" />
         </el-form-item>
@@ -880,6 +880,14 @@ onUnmounted(() => {
   
   .search-input {
     width: 100% !important;
+  }
+
+  /* Fix dark mode search icon color */
+  :deep(.el-input-group__append .el-button) {
+    color: var(--text-secondary);
+  }
+  :deep(.el-input-group__append .el-button:hover) {
+    color: var(--primary-color);
   }
 }
 </style>
