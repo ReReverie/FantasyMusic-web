@@ -79,6 +79,12 @@ const routes = [
         meta: { title: '修改密码', icon: 'Lock' }
       }
     ]
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'NotFound',
+    component: () => import('@/views/error/404.vue'),
+    hidden: true
   }
 ]
 

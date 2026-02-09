@@ -33,27 +33,84 @@
       </template>
       
       <div class="search-bar" style="margin-bottom: 20px;">
-        <el-input
-          v-model="searchQuery.title"
-          placeholder="搜索歌曲标题"
-          style="width: 200px; margin-right: 10px;"
-          clearable
-          @clear="handleSearch"
-          @keyup.enter="handleSearch"
-        />
-        <el-input
-          v-model="searchQuery.artist"
-          placeholder="搜索歌手"
-          style="width: 200px; margin-right: 10px;"
-          clearable
-          @clear="handleSearch"
-          @keyup.enter="handleSearch"
-        />
-        <el-button type="primary" @click="handleSearch">搜索</el-button>
-        <el-button @click="handleReset">重置</el-button>
+        <div class="search-inputs">
+          <el-input
+            v-model="searchQuery.title"
+            placeholder="搜索歌曲标题"
+            class="search-input"
+            clearable
+            @clear="handleSearch"
+            @keyup.enter="handleSearch"
+          />
+          <el-input
+            v-model="searchQuery.artist"
+            placeholder="搜索歌手"
+            class="search-input"
+            clearable
+            @clear="handleSearch"
+            @keyup.enter="handleSearch"
+          />
+        </div>
+        <div class="search-actions">
+          <el-button type="primary" @click="handleSearch">搜索</el-button>
+          <el-button @click="handleReset">重置</el-button>
+        </div>
+      </div>
+
+      <!-- Mobile Card List View -->
+      <div class="mobile-music-list" v-if="musicList.length > 0">
+        <div 
+          class="music-card" 
+          v-for="item in musicList" 
+          :key="item.id" 
+          :class="{ 'is-selected': isBatchMode && multipleSelection.some(i => i.id === item.id) }"
+          @click="isBatchMode ? toggleSelection(item) : handlePlay(item)"
+        >
+          <div class="card-left">
+            <el-image 
+              class="card-cover"
+              :src="getCoverUrl(item)" 
+              fit="cover"
+              lazy
+            >
+              <template #error>
+                <div class="card-cover-placeholder">
+                  <el-icon><Picture /></el-icon>
+                </div>
+              </template>
+            </el-image>
+            <!-- Selection Checkbox Overlay -->
+            <div class="selection-overlay" v-if="isBatchMode">
+              <div class="checkbox-circle">
+                <el-icon v-if="multipleSelection.some(i => i.id === item.id)"><Check /></el-icon>
+              </div>
+            </div>
+          </div>
+          <div class="card-center">
+            <div class="card-title">{{ item.title }}</div>
+            <div class="card-artist">
+              <el-tag v-if="item.quality" size="small" type="warning" effect="dark" class="quality-tag">{{ item.quality || 'HQ' }}</el-tag>
+              {{ item.artist }}
+            </div>
+          </div>
+          <div class="card-right" v-if="!isBatchMode">
+            <el-button size="small" type="primary" plain circle :icon="VideoPlay" @click.stop="handlePlay(item)" />
+            <el-dropdown trigger="click" @click.stop>
+              <el-button size="small" plain circle :icon="Plus" style="margin-left: 8px" @click.stop />
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item :icon="Download" @click="handleDownload(item)">下载</el-dropdown-item>
+                  <el-dropdown-item :icon="Star" @click="handleOpenCollect(item)">收藏</el-dropdown-item>
+                  <el-dropdown-item v-if="isAdmin" :icon="Delete" @click="handleMobileDelete(item)" divided>删除</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+          </div>
+        </div>
       </div>
 
       <el-table 
+        class="desktop-table"
         :key="isBatchMode"
         ref="tableRef" 
         :data="musicList" 
@@ -75,14 +132,14 @@
                 fit="cover"
               >
                 <template #error>
-                  <div class="image-slot" style="display: flex; justify-content: center; align-items: center; width: 100%; height: 100%; background: #f5f7fa; color: #909399;">
+                  <div class="image-slot" style="display: flex; justify-content: center; align-items: center; width: 100%; height: 100%; background: var(--table-hover-bg); color: var(--text-placeholder);">
                     <el-icon><Picture /></el-icon>
                   </div>
                 </template>
               </el-image>
               <div style="display: flex; flex-direction: column; justify-content: center; overflow: hidden;">
-                <span style="font-size: 14px; font-weight: 500; color: #303133; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ scope.row.title }}</span>
-                <span style="font-size: 12px; color: #909399; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                <span style="font-size: 14px; font-weight: 500; color: var(--text-main); margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ scope.row.title }}</span>
+                <span style="font-size: 12px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                    <el-tag v-if="scope.row.quality" size="small" type="warning" effect="dark" style="transform: scale(0.8); transform-origin: left center; margin-right: 4px;">{{ scope.row.quality || 'HQ' }}</el-tag>
                    {{ scope.row.artist }}
                 </span>
@@ -90,15 +147,15 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="album" label="专辑" min-width="150" show-overflow-tooltip />
-        <el-table-column prop="durationMs" label="时长" width="80">
+        <el-table-column prop="album" label="专辑" min-width="150" show-overflow-tooltip class-name="hidden-mobile" />
+        <el-table-column prop="durationMs" label="时长" width="80" class-name="hidden-mobile">
           <template #default="scope">
             {{ formatDuration(scope.row.durationMs) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="220">
+        <el-table-column label="操作" width="220" class-name="actions-column">
           <template #default="scope">
-            <div style="display: flex; gap: 8px;">
+            <div class="actions-wrapper">
               <el-tooltip content="播放" placement="top" :show-after="500">
                 <el-button size="small" type="primary" plain circle :icon="VideoPlay" @click="handlePlay(scope.row)" />
               </el-tooltip>
@@ -122,11 +179,13 @@
 
       <div class="pagination-container">
         <el-pagination
+          background
           v-model:current-page="currentPage"
           v-model:page-size="pageSize"
           :page-sizes="[20, 50, 100]"
-          layout="total, sizes, prev, pager, next, jumper"
+          :layout="isMobile ? 'prev, pager, next' : 'total, sizes, prev, pager, next, jumper'"
           :total="total"
+          :small="isMobile"
           @size-change="handleSizeChange"
           @current-change="handleCurrentChange"
         />
@@ -134,7 +193,7 @@
     </el-card>
 
     <!-- 收藏到歌单弹窗 -->
-    <el-dialog v-model="collectDialogVisible" title="添加到歌单" width="30%">
+    <el-dialog v-model="collectDialogVisible" title="添加到歌单" :width="isMobile ? '90%' : '30%'">
       <div v-if="myMusicLists.length === 0">暂无歌单，请先去创建歌单</div>
       <el-scrollbar max-height="300px" v-else>
         <div 
@@ -181,7 +240,7 @@ import { usePlayerStore } from '@/store/player'
 import { getMusicPage, deleteMusic, batchDeleteMusic, downloadMusic, searchMusic } from '@/api/music'
 import { getMusicLists, addMusicToMusicList, batchAddMusicToMusicList } from '@/api/musiclist'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, Picture, VideoPlay, Download, Star, Delete } from '@element-plus/icons-vue'
+import { Plus, Picture, VideoPlay, Download, Star, Delete, Check } from '@element-plus/icons-vue'
 import { getCoverUrl } from '@/utils/music-utils'
 
 const router = useRouter()
@@ -212,6 +271,26 @@ const total = ref(0)
 
 const handleSelectionChange = (val) => {
   multipleSelection.value = val
+}
+
+const toggleSelection = (row) => {
+  const index = multipleSelection.value.findIndex(item => item.id === row.id)
+  if (index > -1) {
+    // Deselect
+    const newSelection = [...multipleSelection.value]
+    newSelection.splice(index, 1)
+    multipleSelection.value = newSelection
+    // Sync with table if possible (optional, mainly for visual consistency if table was visible)
+    if (tableRef.value) {
+      tableRef.value.toggleRowSelection(row, false)
+    }
+  } else {
+    // Select
+    multipleSelection.value = [...multipleSelection.value, row]
+    if (tableRef.value) {
+      tableRef.value.toggleRowSelection(row, true)
+    }
+  }
 }
 
 const handleRowDblClick = (row) => {
@@ -309,11 +388,27 @@ const handleBatchDelete = () => {
 const handleSizeChange = (val) => {
   pageSize.value = val
   fetchMusicList()
+  scrollToTop()
 }
 
 const handleCurrentChange = (val) => {
   currentPage.value = val
   fetchMusicList()
+  scrollToTop()
+}
+
+const scrollToTop = () => {
+  nextTick(() => {
+    // 尝试多种选择器以适应不同的 Element Plus 版本和布局
+    const scrollContainer = document.querySelector('.main-container .el-scrollbar__wrap') || 
+                            document.querySelector('.el-scrollbar__wrap')
+    
+    if (scrollContainer) {
+      scrollContainer.scroll({ top: 0, behavior: 'smooth' })
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  })
 }
 
 const searchQuery = ref({
@@ -371,7 +466,7 @@ const handleAddToMusicList = async (musicListId) => {
       await batchAddMusicToMusicList({
         musicListId,
         musicIds
-      })
+      }, { skipErrorMessage: true })
       ElMessage.success('批量收藏成功')
       // 清空选择并退出批量模式
       multipleSelection.value = []
@@ -380,13 +475,25 @@ const handleAddToMusicList = async (musicListId) => {
       await addMusicToMusicList({
         musicListId,
         musicId: currentMusicId.value
-      })
+      }, { skipErrorMessage: true })
       ElMessage.success('收藏成功')
     }
     collectDialogVisible.value = false
   } catch (error) {
     console.error(error)
-    ElMessage.error('收藏失败')
+    const msg = error.message || '收藏失败'
+    // 检查是否为重复添加错误 (Duplicate entry 或 backend 自定义提示)
+    if (msg.includes('Duplicate') || msg.includes('duplicate') || msg.includes('exist') || msg.includes('已存在')) {
+      if (isBatchCollectAction.value) {
+         ElMessage.warning('部分或全部歌曲已在歌单中，收藏失败')
+      } else {
+         const music = musicList.value.find(m => m.id === currentMusicId.value)
+         const title = music ? music.title : '歌曲'
+         ElMessage.warning(`${title} 已在歌单中，收藏失败!`)
+      }
+    } else {
+      ElMessage.error(msg)
+    }
   } finally {
     isBatchCollectAction.value = false
   }
@@ -440,13 +547,22 @@ const fetchMusicList = async () => {
   }
 }
 
+const isMobile = ref(false)
+
+const checkMobile = () => {
+  isMobile.value = window.innerWidth <= 768
+}
+
 onMounted(() => {
   fetchMusicList()
   window.addEventListener('click', closeContextMenu)
+  checkMobile()
+  window.addEventListener('resize', checkMobile)
 })
 
 onUnmounted(() => {
   window.removeEventListener('click', closeContextMenu)
+  window.removeEventListener('resize', checkMobile)
 })
 
 const handleUpload = () => {
@@ -464,8 +580,14 @@ const handleDownload = async (row) => {
     
     // 1. 如果后端返回的是 URL 字符串 (OSS 签名链接)
     if (typeof response === 'string' && (response.startsWith('http') || response.startsWith('/'))) {
+        let downloadUrl = response
+        // 强制升级 HTTP 为 HTTPS
+        if (downloadUrl.startsWith('http://')) {
+            downloadUrl = downloadUrl.replace('http://', 'https://')
+        }
+        
         const link = document.createElement('a')
-        link.href = response
+        link.href = downloadUrl
         // 对于 OSS 签名链接，通常 Content-Disposition 已包含在签名或元数据中
         // download 属性在跨域时可能无效，但如果 headers 正确，浏览器会下载
         link.setAttribute('download', '') 
@@ -513,6 +635,20 @@ const handleDownload = async (row) => {
   }
 }
 
+const handleMobileDelete = (row) => {
+  ElMessageBox.confirm(
+    '确定要删除这首歌曲吗？',
+    '提示',
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    }
+  ).then(() => {
+    handleDelete(row)
+  }).catch(() => {})
+}
+
 const handleDelete = async (row) => {
   try {
     await deleteMusic(row.id)
@@ -538,27 +674,28 @@ const formatDuration = (ms) => {
 .context-menu {
   position: fixed;
   z-index: 9999;
-  background-color: #fff;
+  background-color: var(--card-bg);
+  backdrop-filter: blur(10px);
   border-radius: 4px;
   box-shadow: 0 2px 12px 0 rgba(0,0,0,0.1);
   padding: 5px 0;
   min-width: 120px;
-  border: 1px solid #e4e7ed;
+  border: 1px solid var(--glass-border);
 }
 
 .menu-item {
   padding: 10px 16px;
   cursor: pointer;
   font-size: 14px;
-  color: #606266;
+  color: var(--text-main);
   transition: background-color 0.2s;
   display: flex;
   align-items: center;
 }
 
 .menu-item:hover {
-  background-color: #f5f7fa;
-  color: #409EFF;
+  background-color: var(--menu-hover-bg);
+  color: var(--primary-color);
 }
 
 .menu-item.delete:hover {
@@ -566,16 +703,275 @@ const formatDuration = (ms) => {
   color: #f56c6c;
 }
 
-.music-container {
-  max-width: 100%;
-  overflow-x: hidden;
+/* Search Bar Styles */
+.search-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
 }
 
-/* 移除之前的底部 padding，因为现在由 layout 统一控制 */
-.pagination-container {
-  margin-top: 20px;
+.search-inputs {
   display: flex;
-  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.search-input {
+  width: 200px;
+}
+
+.search-actions {
+  display: flex;
+  gap: 10px;
+}
+
+@media screen and (max-width: 768px) {
+  .search-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-inputs {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .search-input {
+    width: 100% !important;
+    margin-right: 0 !important;
+  }
+
+  .search-actions {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+  }
+  
+  .search-actions .el-button {
+    flex: 1;
+  }
+}
+
+/* Mobile Card List Styles */
+.mobile-music-list {
+  display: none;
+}
+
+.desktop-table {
+  display: block;
+}
+
+@media screen and (max-width: 768px) {
+  .desktop-table {
+    display: none !important;
+  }
+  
+  .mobile-music-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .music-card {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    background: var(--card-bg);
+    border-radius: 12px;
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    color: var(--text-main);
+  }
+  
+  .card-left {
+    flex-shrink: 0;
+    margin-right: 12px;
+    position: relative;
+  }
+  
+  .card-cover {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    display: block;
+  }
+
+  /* Selection Styles */
+  .music-card.is-selected {
+    background: rgba(139, 92, 246, 0.15);
+    border-color: var(--primary-color);
+  }
+
+  .selection-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .checkbox-circle {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+  }
+  
+  .card-cover-placeholder {
+    width: 100%;
+    height: 100%;
+    background: var(--table-hover-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-placeholder);
+  }
+  
+  .card-center {
+    flex: 1;
+    overflow: hidden;
+    margin-right: 12px;
+  }
+  
+  .card-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-main);
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .card-artist {
+    font-size: 12px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+  }
+  
+  .quality-tag {
+    transform: scale(0.8);
+    transform-origin: left center;
+    margin-right: 4px;
+  }
+  
+  .card-right {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+  }
+}
+</style>
+
+<style>
+/* Custom Pagination Styles - Non-scoped to override Element Plus */
+.music-container .pagination-container {
+  margin-top: 24px;
+  display: flex;
+  justify-content: center;
+  padding: 16px;
+  background: var(--card-bg);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border);
+}
+
+.music-container .el-pagination {
+  --el-pagination-bg-color: transparent;
+  --el-pagination-button-bg-color: transparent;
+  --el-pagination-hover-color: var(--primary-color);
+  font-weight: 500;
+}
+
+/* 收藏弹窗列表样式 (Global) */
+.music-list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--glass-border);
+  transition: background-color 0.2s;
+  color: var(--text-main) !important;
+}
+
+.music-list-item:hover {
+  background-color: var(--menu-hover-bg);
+}
+
+.list-info {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  align-items: center;
+}
+
+.list-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-main) !important;
+}
+
+.list-count {
+  font-size: 12px;
+  color: var(--text-secondary) !important;
+}
+
+.music-container .el-pagination.is-background .el-pager li:not(.is-disabled).is-active {
+  background-color: var(--primary-color) !important;
+  color: white !important;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+  font-weight: 700;
+  border: none;
+}
+
+.music-container .el-pagination.is-background .el-pager li {
+  background-color: transparent !important;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  margin: 0 4px;
+  transition: all 0.3s;
+}
+
+.music-container .el-pagination.is-background .btn-prev,
+.music-container .el-pagination.is-background .btn-next {
+  background-color: transparent !important;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  transition: all 0.3s;
+}
+
+.music-container .el-pagination.is-background .el-pager li:not(.is-disabled):hover {
+  color: var(--primary-color);
+  background-color: var(--menu-hover-bg) !important;
+}
+
+.music-container .el-pagination.is-background .btn-prev:hover,
+.music-container .el-pagination.is-background .btn-next:hover {
+  color: var(--primary-color);
+  background-color: var(--menu-hover-bg) !important;
+}
+
+.music-container .el-pagination.is-background .btn-prev:disabled,
+.music-container .el-pagination.is-background .btn-next:disabled {
+  background-color: transparent !important;
+  opacity: 0.5;
 }
 </style>
 
@@ -584,6 +980,24 @@ const formatDuration = (ms) => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+@media screen and (max-width: 768px) {
+  .card-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 10px;
+  }
+
+  .header-actions .el-button {
+    flex: 1;
+    margin-right: 0 !important;
+  }
 }
 
 .music-list-item {

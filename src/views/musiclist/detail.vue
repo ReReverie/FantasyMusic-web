@@ -41,7 +41,7 @@
         </div>
       </div>
 
-      <div class="table-toolbar" style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+      <div class="table-toolbar">
         <div class="toolbar-actions">
           <template v-if="!isBatchMode">
             <el-button @click="toggleBatchMode(true)">批量操作</el-button>
@@ -60,21 +60,74 @@
         <el-input
           v-model="searchQuery"
           placeholder="搜索标题/专辑/歌手"
-          style="width: 250px;"
+          class="search-input"
           clearable
           @clear="handleSearch"
           @keyup.enter="handleSearch"
         >
           <template #append>
-            <el-button @click="handleSearch">
+            <el-button @click="handleSearch" class="search-btn">
               <el-icon><Search /></el-icon>
             </el-button>
           </template>
         </el-input>
       </div>
 
+      <!-- Mobile Card List View -->
+      <div class="mobile-music-list" v-if="tableData.length > 0">
+        <div 
+          class="music-card" 
+          v-for="item in tableData" 
+          :key="item.id" 
+          :class="{ 'is-selected': isBatchMode && multipleSelection.some(i => i.id === item.id) }"
+          @click="isBatchMode ? toggleSelection(item) : handlePlay(item)"
+        >
+          <div class="card-left">
+            <el-image 
+              class="card-cover"
+              :src="getCoverUrl(item)" 
+              fit="cover"
+              lazy
+            >
+              <template #error>
+                <div class="card-cover-placeholder">
+                  <el-icon><Picture /></el-icon>
+                </div>
+              </template>
+            </el-image>
+            <!-- Selection Checkbox Overlay -->
+            <div class="selection-overlay" v-if="isBatchMode">
+              <div class="checkbox-circle">
+                <el-icon v-if="multipleSelection.some(i => i.id === item.id)"><Check /></el-icon>
+              </div>
+            </div>
+          </div>
+          <div class="card-center">
+            <div class="card-title">{{ item.title }}</div>
+            <div class="card-artist">
+              <el-tag v-if="item.quality" size="small" type="warning" effect="dark" class="quality-tag">{{ item.quality || 'HQ' }}</el-tag>
+              {{ item.artist }}
+            </div>
+          </div>
+          <div class="card-right" v-if="!isBatchMode">
+            <el-button size="small" type="primary" plain circle :icon="VideoPlay" @click.stop="handlePlay(item)" />
+            <el-dropdown trigger="click" @click.stop>
+              <el-button size="small" plain circle :icon="MoreFilled" style="margin-left: 8px" @click.stop />
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item :icon="Download" @click="handleDownload(item)">下载</el-dropdown-item>
+                  <el-dropdown-item :icon="Delete" @click="handleRemove(item)" divided>移除</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+          </div>
+        </div>
+      </div>
+
       <!-- 歌曲列表 -->
       <el-table 
+        class="desktop-table"
+        ref="tableRef"
         :key="isBatchMode"
         :data="tableData" 
         style="width: 100%;" 
@@ -96,14 +149,14 @@
                  :preview-src-list="[getCoverUrl(scope.row)]"
                >
                  <template #error>
-                   <div class="image-slot" style="background: #f5f7fa; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #909399;">
+                   <div class="image-slot" style="background: var(--table-hover-bg); width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--text-placeholder);">
                       <el-icon><Picture /></el-icon>
                    </div>
                  </template>
                </el-image>
                <div style="display: flex; flex-direction: column; justify-content: center; overflow: hidden;">
-                 <span style="font-size: 14px; font-weight: 500; color: #303133; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ scope.row.title }}</span>
-                 <span style="font-size: 12px; color: #909399; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                 <span style="font-size: 14px; font-weight: 500; color: var(--text-main); margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ scope.row.title }}</span>
+                 <span style="font-size: 12px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                     <el-tag v-if="scope.row.quality" size="small" type="warning" effect="dark" style="transform: scale(0.8); transform-origin: left center; margin-right: 4px;">{{ scope.row.quality || 'HQ' }}</el-tag>
                     {{ scope.row.artist }}
                  </span>
@@ -139,7 +192,7 @@
 
     <!-- 编辑歌单弹窗 -->
     <el-dialog v-model="editDialogVisible" title="编辑歌单信息" width="500px">
-      <el-form :model="editForm" label-width="80px">
+      <el-form :model="editForm" label-width="80px" @submit.prevent>
         <el-form-item label="歌单名称">
           <el-input v-model="editForm.title" placeholder="请输入歌单名称" />
         </el-form-item>
@@ -184,7 +237,7 @@ import { getMusicListDetail, removeMusicFromMusicList, batchRemoveMusicFromMusic
 import { downloadMusic } from '@/api/music'
 import { usePlayerStore } from '@/store/player'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { ArrowLeft, Picture, VideoPlay, Search, Download, Delete, Edit } from '@element-plus/icons-vue'
+import { ArrowLeft, Picture, VideoPlay, Search, Download, Delete, Edit, Check, MoreFilled } from '@element-plus/icons-vue'
 import { getCoverUrl, getPlaylistCover, formatDate } from '@/utils/music-utils'
 
 const route = useRoute()
@@ -195,6 +248,7 @@ const searchQuery = ref('')
 const loading = ref(false)
 const detail = ref({})
 const tableData = ref([])
+const tableRef = ref(null)
 
 const editDialogVisible = ref(false)
 const editLoading = ref(false)
@@ -212,7 +266,26 @@ const toggleBatchMode = (val) => {
   isBatchMode.value = val
   if (!val) {
     multipleSelection.value = []
-    // Clear selection in table if needed, though reactive binding should handle it
+    if (tableRef.value) {
+      tableRef.value.clearSelection()
+    }
+  }
+}
+
+const toggleSelection = (row) => {
+  const index = multipleSelection.value.findIndex(item => item.id === row.id)
+  if (index > -1) {
+    const newSelection = [...multipleSelection.value]
+    newSelection.splice(index, 1)
+    multipleSelection.value = newSelection
+    if (tableRef.value) {
+      tableRef.value.toggleRowSelection(row, false)
+    }
+  } else {
+    multipleSelection.value = [...multipleSelection.value, row]
+    if (tableRef.value) {
+      tableRef.value.toggleRowSelection(row, true)
+    }
   }
 }
 
@@ -538,10 +611,11 @@ onUnmounted(() => {
 .info-content h2 {
   margin: 0 0 10px 0;
   font-size: 24px;
+  color: var(--text-main);
 }
 
 .meta {
-  color: #666;
+  color: var(--text-secondary);
   font-size: 14px;
   margin-bottom: 10px;
 }
@@ -551,7 +625,7 @@ onUnmounted(() => {
 }
 
 .description {
-  color: #666;
+  color: var(--text-secondary);
   font-size: 14px;
   margin-bottom: 20px;
   line-height: 1.5;
@@ -568,12 +642,137 @@ onUnmounted(() => {
 .context-menu {
   position: fixed;
   z-index: 9999;
-  background-color: #fff;
+  background-color: var(--card-bg);
+  backdrop-filter: blur(10px);
   border-radius: 4px;
   box-shadow: 0 2px 12px 0 rgba(0,0,0,0.1);
   padding: 5px 0;
   min-width: 120px;
-  border: 1px solid #e4e7ed;
+  border: 1px solid var(--glass-border);
+}
+
+/* Mobile Card List Styles */
+.mobile-music-list {
+  display: none;
+}
+
+.desktop-table {
+  display: block;
+}
+
+@media screen and (max-width: 768px) {
+  .desktop-table {
+    display: none !important;
+  }
+  
+  .mobile-music-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .music-card {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    background: var(--card-bg);
+    border-radius: 12px;
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    color: var(--text-main);
+  }
+  
+  .card-left {
+    flex-shrink: 0;
+    margin-right: 12px;
+    position: relative; /* For selection overlay */
+  }
+  
+  .card-cover {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    display: block;
+  }
+
+  /* Selection Styles */
+  .music-card.is-selected {
+    background: rgba(139, 92, 246, 0.15); /* Light violet background */
+    border-color: var(--primary-color);
+  }
+
+  .selection-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .checkbox-circle {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+  }
+  
+  .card-cover-placeholder {
+    width: 100%;
+    height: 100%;
+    background: var(--table-hover-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-placeholder);
+  }
+  
+  .card-center {
+    flex: 1;
+    overflow: hidden;
+    margin-right: 12px;
+  }
+  
+  .card-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-main);
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .card-artist {
+    font-size: 12px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+  }
+  
+  .quality-tag {
+    transform: scale(0.8);
+    transform-origin: left center;
+    margin-right: 4px;
+  }
+  
+  .card-right {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+  }
 }
 
 .menu-item {
@@ -594,5 +793,101 @@ onUnmounted(() => {
 .menu-item.delete:hover {
   background-color: #fef0f0;
   color: #f56c6c;
+}
+
+.table-toolbar {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.search-input {
+  width: 250px;
+}
+
+@media screen and (max-width: 768px) {
+  .info-section {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 15px;
+  }
+
+  .cover {
+    width: 140px;
+    height: 140px;
+    margin: 0 auto;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+
+  .info-content {
+    width: 100%;
+    align-items: center;
+  }
+
+  .info-content h2 {
+    font-size: 20px;
+    margin: 5px 0 10px 0;
+  }
+  
+  .meta {
+    justify-content: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    font-size: 13px;
+  }
+
+  .track-count {
+    margin-left: 0;
+  }
+  
+  .description {
+    text-align: left;
+    background: rgba(0,0,0,0.02);
+    padding: 10px;
+    border-radius: 8px;
+    width: 100%;
+    font-size: 13px;
+  }
+
+  .actions {
+    width: 100%;
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 10px;
+  }
+  
+  .actions .el-button {
+    flex: 1;
+    height: 40px;
+  }
+
+  .table-toolbar {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .toolbar-actions {
+    width: 100%;
+    display: flex;
+  }
+  
+  .toolbar-actions .el-button {
+    flex: 1;
+  }
+  
+  .search-input {
+    width: 100% !important;
+  }
+
+  /* Fix dark mode search icon color */
+  :deep(.el-input-group__append .el-button) {
+    color: var(--text-secondary);
+  }
+  :deep(.el-input-group__append .el-button:hover) {
+    color: var(--primary-color);
+  }
 }
 </style>

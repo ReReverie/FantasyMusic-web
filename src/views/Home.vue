@@ -65,7 +65,7 @@
           <button class="text-btn" @click="$router.push('/musiclist')">更多 <el-icon><ArrowRight /></el-icon></button>
         </div>
 
-        <div class="playlist-grid" v-if="playlists.length > 0">
+        <div class="playlist-grid">
           <div class="playlist-card" v-for="list in playlists" :key="list.id" @click="$router.push(`/musiclist/${list.id}`)">
             <div class="playlist-cover">
               <el-image :src="getPlaylistCover(list)" fit="cover" lazy>
@@ -84,8 +84,20 @@
               <div class="playlist-meta">{{ list.musics ? list.musics.length : (list.trackCount || 0) }} 首歌曲</div>
             </div>
           </div>
+          
+          <!-- 创建歌单卡片 -->
+          <div class="playlist-card create-card" @click="handleCreate">
+            <div class="playlist-cover create-cover">
+              <div class="create-content">
+                <el-icon class="plus-icon"><Plus /></el-icon>
+              </div>
+            </div>
+            <div class="playlist-info">
+              <div class="playlist-title">创建歌单</div>
+              <div class="playlist-meta">新建一个歌单</div>
+            </div>
+          </div>
         </div>
-        <el-empty v-else description="暂无歌单" :image-size="100" />
       </section>
       
       <!-- 右侧：最新音乐 -->
@@ -132,6 +144,23 @@
         <el-empty v-else description="暂无新歌" :image-size="80" />
       </section>
     </div>
+    <!-- 创建歌单弹窗 -->
+    <el-dialog v-model="createDialogVisible" title="创建歌单" width="30%">
+      <el-form :model="createForm" label-width="80px" @submit.prevent>
+        <el-form-item label="歌单名称">
+          <el-input v-model="createForm.title" placeholder="请输入歌单名称" />
+        </el-form-item>
+        <el-form-item label="简介">
+          <el-input v-model="createForm.description" type="textarea" placeholder="请输入简介" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="createDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="confirmCreate">确定</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -142,11 +171,14 @@ export default {
 </script>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onActivated, reactive } from 'vue'
 import { useUserStore } from '@/store/user'
 import { getHomeData } from '@/api/home'
+import { createMusicList } from '@/api/musiclist'
 import { usePlayerStore } from '@/store/player'
 import { getCoverUrl, getPlaylistCover } from '@/utils/music-utils'
+import { ElMessage } from 'element-plus'
+import { Plus } from '@element-plus/icons-vue'
 
 const userStore = useUserStore()
 const playerStore = usePlayerStore()
@@ -157,7 +189,41 @@ const collectedMusicCount = ref(0)
 const playlists = ref([])
 const latestMusic = ref([])
 
+const createDialogVisible = ref(false)
+const createForm = reactive({
+  title: '',
+  description: ''
+})
+
+const handleCreate = () => {
+  createForm.title = ''
+  createForm.description = ''
+  createDialogVisible.value = true
+}
+
+const confirmCreate = async () => {
+  if (!createForm.title) {
+    ElMessage.warning('请输入歌单名称')
+    return
+  }
+  try {
+    await createMusicList({
+      title: createForm.title,
+      description: createForm.description || null
+    })
+    ElMessage.success('创建成功')
+    createDialogVisible.value = false
+    fetchData()
+  } catch (error) {
+    ElMessage.error('创建失败')
+  }
+}
+
 onMounted(async () => {
+  await fetchData()
+})
+
+onActivated(async () => {
   await fetchData()
 })
 
@@ -193,8 +259,15 @@ $primary-color: #667eea;
   overflow: hidden;
   font-family: 'PingFang SC', 'Helvetica Neue', Helvetica, 'Hiragino Sans GB', 'Microsoft YaHei', Arial, sans-serif;
   border-radius: 16px;
-  background-color: #fff; /* Ensure it looks like a card */
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  background-color: transparent;
+  /* box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); Removed to be cleaner */
+}
+
+@media screen and (max-width: 768px) {
+  .home-container {
+    padding: 16px; /* Reduce padding on mobile to prevent clipping */
+    overflow: visible; /* Allow content to flow */
+  }
 }
 
 /* 动态背景球 */
@@ -260,7 +333,7 @@ $primary-color: #667eea;
     font-size: 32px;
     font-weight: 800;
     margin: 0;
-    background: linear-gradient(135deg, #2c3e50 0%, #667eea 100%);
+    background: var(--text-gradient);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     letter-spacing: -0.5px;
@@ -268,7 +341,7 @@ $primary-color: #667eea;
   
   .subtitle {
     margin: 8px 0 0;
-    color: #606266;
+    color: var(--text-secondary);
     font-size: 16px;
     opacity: 0.8;
   }
@@ -276,12 +349,8 @@ $primary-color: #667eea;
 
 /* 玻璃拟态面板通用 */
 .glass-panel {
-  background: $glass-bg;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid $glass-border;
-  border-radius: 20px;
-  box-shadow: $shadow-soft;
+  /* Inherits from global .glass-panel */
+  border-radius: 20px; /* Local override */
 }
 
 /* 统计卡片网格 */
@@ -324,7 +393,7 @@ $primary-color: #667eea;
       width: 56px;
       height: 56px;
       border-radius: 16px;
-      background: rgba(255,255,255,0.5);
+      background: var(--table-header-bg);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -338,11 +407,11 @@ $primary-color: #667eea;
         font-size: 28px;
         font-weight: 800;
         line-height: 1.2;
-        color: #2c3e50;
+        color: var(--text-main);
       }
       .stat-label {
         font-size: 13px;
-        color: #909399;
+        color: var(--text-secondary);
         margin-top: 4px;
       }
     }
@@ -382,14 +451,14 @@ $primary-color: #667eea;
         margin: 0;
         font-size: 20px;
         font-weight: 700;
-        color: #2c3e50;
+        color: var(--text-main);
       }
     }
     
     .text-btn {
       background: none;
       border: none;
-      color: #909399;
+      color: var(--text-secondary);
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -413,8 +482,9 @@ $primary-color: #667eea;
   .playlist-card {
     cursor: pointer;
     group: hover;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     
-    .image-wrapper {
+    .playlist-cover {
       position: relative;
       border-radius: 12px;
       overflow: hidden;
@@ -428,18 +498,18 @@ $primary-color: #667eea;
         transition: transform 0.5s ease;
       }
       
-      .image-placeholder {
+      .image-slot {
         width: 100%;
         height: 100%;
-        background: #f5f7fa;
+        background: var(--table-header-bg);
         display: flex;
         justify-content: center;
         align-items: center;
-        color: #ccc;
+        color: var(--text-placeholder);
         font-size: 32px;
       }
       
-      .hover-play {
+      .play-overlay {
         position: absolute;
         inset: 0;
         background: rgba(0,0,0,0.3);
@@ -460,21 +530,22 @@ $primary-color: #667eea;
     }
     
     &:hover {
-      .image-wrapper {
+      transform: translateY(-8px);
+
+      .playlist-cover {
         box-shadow: 0 12px 24px rgba(0,0,0,0.15);
-        transform: translateY(-4px);
         
         .el-image {
           transform: scale(1.1);
         }
         
-        .hover-play {
+        .play-overlay {
           opacity: 1;
           .el-icon { transform: scale(1); }
         }
       }
       
-      .playlist-title { color: $primary-color; }
+      .playlist-title { color: var(--primary-color); }
     }
     
     .playlist-info {
@@ -483,7 +554,7 @@ $primary-color: #667eea;
       .playlist-title {
         font-size: 14px;
         font-weight: 600;
-        color: #2c3e50;
+        color: var(--text-main);
         margin-bottom: 4px;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -493,7 +564,49 @@ $primary-color: #667eea;
       
       .playlist-meta {
         font-size: 12px;
-        color: #909399;
+        color: var(--text-secondary);
+      }
+    }
+    
+    /* Create Card Styles */
+    &.create-card {
+      .create-cover {
+        background: var(--table-header-bg);
+        border: 2px dashed var(--glass-border);
+        box-shadow: none;
+        
+        .create-content {
+          width: 100%;
+          height: 100%;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          transition: all 0.3s ease;
+          
+          .plus-icon {
+            font-size: 32px;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+          }
+        }
+      }
+      
+      &:hover {
+        transform: translateY(-5px);
+        
+        .create-cover {
+          border-color: var(--primary-color);
+          background: rgba(102, 126, 234, 0.05);
+          
+          .plus-icon {
+            color: var(--primary-color);
+            transform: scale(1.2);
+          }
+        }
+        
+        .playlist-title {
+          color: var(--primary-color);
+        }
       }
     }
   }
@@ -511,12 +624,12 @@ $primary-color: #667eea;
     align-items: center;
     padding: 10px 16px;
     border-radius: 12px;
-    background: rgba(255,255,255,0.4);
+    background: var(--card-bg);
     transition: all 0.2s;
     cursor: pointer;
     
     &:hover {
-      background: #fff;
+      background: var(--table-hover-bg);
       box-shadow: 0 4px 12px rgba(0,0,0,0.05);
       
       .song-left .song-cover-mini {
@@ -540,7 +653,7 @@ $primary-color: #667eea;
       .rank-num {
         font-size: 16px;
         font-weight: 700;
-        color: #c0c4cc;
+        color: var(--text-placeholder);
         width: 24px;
         
         &.top-3 { color: #ff9a9e; }
@@ -550,11 +663,11 @@ $primary-color: #667eea;
         width: 40px;
         height: 40px;
         border-radius: 8px;
-        background: #eef1f6;
+        background: var(--table-header-bg);
         display: flex;
         justify-content: center;
         align-items: center;
-        color: #909399;
+        color: var(--text-placeholder);
         transition: all 0.2s;
       }
       
@@ -565,7 +678,7 @@ $primary-color: #667eea;
         .song-name {
           font-size: 14px;
           font-weight: 600;
-          color: #2c3e50;
+          color: var(--text-main);
           margin-bottom: 2px;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -574,7 +687,7 @@ $primary-color: #667eea;
         
         .song-author {
           font-size: 12px;
-          color: #909399;
+          color: var(--text-secondary);
         }
       }
     }

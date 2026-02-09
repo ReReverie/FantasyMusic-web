@@ -75,33 +75,37 @@
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column label="操作/结果" min-width="200">
+          <el-table-column label="操作/结果" min-width="350">
             <template #default="{ row }">
-              <el-tooltip 
-                v-if="row.status === 'fail'" 
-                :content="row.errorMsg" 
-                placement="top"
-              >
-                <span class="error-msg">{{ row.errorMsg }}</span>
-              </el-tooltip>
-              <el-button 
-                v-if="row.status === 'fail'" 
-                link 
-                type="primary" 
-                @click="retryUpload(row)"
-                :disabled="isUploading"
-              >
-                重试
-              </el-button>
-              <el-button 
-                v-if="row.status !== 'uploading' && row.status !== 'calculating'" 
-                link 
-                type="danger" 
-                @click="removeFile(row)"
-                :disabled="isUploading"
-              >
-                移除
-              </el-button>
+              <div class="result-action-cell">
+                <el-tooltip 
+                  v-if="row.status === 'fail'" 
+                  :content="row.errorMsg" 
+                  placement="top"
+                >
+                  <span class="error-msg">{{ row.errorMsg }}</span>
+                </el-tooltip>
+                <div class="action-buttons-group">
+                  <el-button 
+                    v-if="row.status === 'fail'" 
+                    link 
+                    type="primary" 
+                    @click="retryUpload(row)"
+                    :disabled="isUploading"
+                  >
+                    重试
+                  </el-button>
+                  <el-button 
+                    v-if="row.status !== 'uploading' && row.status !== 'calculating'" 
+                    link 
+                    type="danger" 
+                    @click="removeFile(row)"
+                    :disabled="isUploading"
+                  >
+                    移除
+                  </el-button>
+                </div>
+              </div>
             </template>
           </el-table-column>
         </el-table>
@@ -116,12 +120,22 @@ import { useRouter } from 'vue-router'
 import { UploadFilled, ArrowLeft, Loading } from '@element-plus/icons-vue'
 import { useUploadStore } from '@/store/upload'
 import { storeToRefs } from 'pinia'
+import { ElMessage } from 'element-plus'
 
 const router = useRouter()
 const uploadStore = useUploadStore()
 const { fileList, isUploading, uploadingCount } = storeToRefs(uploadStore)
 
 const handleFileChange = (uploadFile) => {
+  const allowedExtensions = ['mp3', 'flac', 'wav', 'ogg', 'm4a']
+  const fileName = uploadFile.name.toLowerCase()
+  const extension = fileName.substring(fileName.lastIndexOf('.') + 1)
+  
+  if (!allowedExtensions.includes(extension)) {
+    ElMessage.error(`不支持的文件格式: ${uploadFile.name}。请上传 MP3, FLAC, WAV, OGG, M4A 格式的音频文件。`)
+    return
+  }
+  
   uploadStore.addFile(uploadFile)
 }
 
@@ -197,16 +211,27 @@ const retryUpload = (file) => {
     }
   }
 
+  .result-action-cell {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .action-buttons-group {
+    display: flex;
+    flex-shrink: 0;
+    margin-left: 10px;
+  }
+
   .error-msg {
     color: #f56c6c;
     font-size: 12px;
-    margin-right: 10px;
-    display: inline-block;
-    max-width: 150px;
+    flex: 1;
+    min-width: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    vertical-align: middle;
   }
 
   .status-content {

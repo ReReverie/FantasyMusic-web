@@ -15,7 +15,7 @@ export const useUserStore = defineStore('user', {
   }),
   actions: {
     login(userInfo) {
-      const { username, password, captchaCode, captchaUuid } = userInfo
+      const { account, password, captchaCode, captchaUuid } = userInfo
       return new Promise((resolve, reject) => {
         // RSA Encryption
         const encryptedPassword = encrypt(password)
@@ -25,7 +25,7 @@ export const useUserStore = defineStore('user', {
         }
         
         login({ 
-          username: username.trim(), 
+          account: account.trim(), 
           password: encryptedPassword,
           captchaCode,
           captchaUuid
@@ -35,7 +35,7 @@ export const useUserStore = defineStore('user', {
           this.token = data.token
           this.id = data.id
           this.nickname = data.nickname
-          this.username = username.trim() // store the username used for login
+          this.username = account.trim() // store the username/account used for login
           
           localStorage.setItem('token', data.token)
           resolve()

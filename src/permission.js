@@ -13,7 +13,7 @@ router.beforeEach(async (to, from, next) => {
   NProgress.start()
 
   // set page title
-  document.title = (to.meta.title ? to.meta.title + ' - ' : '') + '梦幻音乐平台'
+  document.title = (to.meta.title ? to.meta.title + ' - ' : '') + 'Fantasy Music'
 
   // determine whether the user has logged in
   const hasToken = localStorage.getItem('token')
@@ -59,7 +59,13 @@ router.beforeEach(async (to, from, next) => {
   }
 })
 
-router.afterEach(() => {
+router.afterEach((to) => {
   // finish progress bar
   NProgress.done()
+
+  // Hide path for specific routes
+  const hidePathRoutes = ['/music', '/musiclist', '/account', '/password', '/home', '/login']
+  if (hidePathRoutes.some(path => to.path === path || to.path.startsWith(path + '/'))) {
+    window.history.replaceState(null, '', '/')
+  }
 })

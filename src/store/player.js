@@ -92,11 +92,11 @@ export const usePlayerStore = defineStore('player', () => {
       else if (response && typeof response === 'object' && response.url) {
         playUrl = response.url
       }
-      // 3. 兼容旧的 Blob 模式 (如果后端没有改变，或者返回流)
-      // 注意：由于去掉了 responseType: 'blob'，axios 可能会尝试解析 JSON。
-      // 如果后端返回的是二进制流，这里可能会乱码。
-      // 建议后端统一接口行为。如果必须兼容，需要根据 content-type 判断，但 axios 拦截器可能已经处理了。
-      // 假设后端现在只返回 URL。
+      
+      // 强制升级 HTTP 为 HTTPS (解决 Mixed Content 问题)
+      if (playUrl && playUrl.startsWith('http://')) {
+        playUrl = playUrl.replace('http://', 'https://')
+      }
       
       if (playUrl) {
         // 释放旧的 Blob URL

@@ -20,7 +20,8 @@ defineProps({
 })
 
 const title = ref('梦幻音乐平台')
-const logo = ref('https://wpimg.wallstcn.com/69a1c46c-eb1c-4b46-8bd4-e9e686ef5251.png') // 暂时使用一个占位 Logo，或者使用 Element Plus 的 Icon
+import logoImg from '@/assets/logo.svg'
+const logo = ref(logoImg)
 </script>
 
 <style scoped>
@@ -38,7 +39,7 @@ const logo = ref('https://wpimg.wallstcn.com/69a1c46c-eb1c-4b46-8bd4-e9e686ef525
   width: 100%;
   height: 50px;
   line-height: 50px;
-  background: #2b2f3a;
+  background: transparent;
   text-align: center;
   overflow: hidden;
 }
@@ -58,7 +59,10 @@ const logo = ref('https://wpimg.wallstcn.com/69a1c46c-eb1c-4b46-8bd4-e9e686ef525
 .sidebar-title {
   display: inline-block;
   margin: 0;
-  color: #fff;
+  background: var(--brand-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: var(--primary-color);
   font-weight: 600;
   line-height: 50px;
   font-size: 14px;

@@ -7,6 +7,10 @@
         </keep-alive>
       </transition>
     </router-view>
+
+    <div class="app-footer">
+      © 2026 ReverieSE
+    </div>
   </section>
 </template>
 
@@ -39,21 +43,38 @@ watch(
   overflow: hidden;
   padding: 20px;
   padding-bottom: 100px; /* 防止底部播放器遮挡内容 */
-  background-color: #f0f2f5;
+  background-color: transparent;
 }
 
 .fade-transform-leave-active,
 .fade-transform-enter-active {
-  transition: all .5s;
+  transition: all 0.5s cubic-bezier(0.55, 0, 0.1, 1);
+  will-change: transform, opacity;
 }
 
 .fade-transform-enter-from {
   opacity: 0;
-  transform: translateX(-30px);
+  transform: translate3d(-20px, 0, 0);
 }
 
 .fade-transform-leave-to {
   opacity: 0;
-  transform: translateX(30px);
+  transform: translate3d(20px, 0, 0);
+}
+
+@media screen and (max-width: 768px) {
+  .app-main {
+    padding: 12px;
+    padding-bottom: 140px; /* Ensure enough space for taller mobile footer */
+  }
+}
+
+.app-footer {
+  text-align: center;
+  padding: 20px 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+  opacity: 0.8;
+  width: 100%;
 }
 </style>
