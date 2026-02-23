@@ -56,6 +56,22 @@ FantasyMusic-web/
 └── README.md            # 项目文档
 ```
 
+## 环境变量配置
+
+本项目使用环境变量来配置部分敏感信息或可变参数。请在项目根目录下创建 `.env` 文件（或 `.env.development`, `.env.production` 等），并添加以下配置：
+
+### RSA 公钥配置
+
+用于前端登录密码加密，需与后端保持一致。
+
+```env
+VITE_RSA_PUBLIC_KEY="-----BEGIN PUBLIC KEY-----
+YOUR_PUBLIC_KEY_HERE
+-----END PUBLIC KEY-----"
+```
+
+如果未配置该环境变量，项目将使用内置的默认公钥。
+
 ## 快速开始
 
 ### 环境要求
