@@ -25,3 +25,6 @@ dist-ssr
 Dockerfile
 docker-compose.yml
 nginx.conf
+
+# Test files
+tests/
