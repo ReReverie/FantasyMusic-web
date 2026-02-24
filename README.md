@@ -4,7 +4,7 @@ FantasyMusic-web 是一个基于 **Vue 3** 和 **Vite** 构建的现代音乐平
 
 **注意**：本项目仅包含前端页面代码，需配合后端的 Spring Boot 服务才能完整运行。
 
-后端项目地址：[FantasyMusic](https://github.com/ReReverie/FantasyMusic)
+后端项目地址：[**FantasyMusic**](https://github.com/ReReverie/FantasyMusic)  演示地址: [**FM-Demo**](https://music.pixmc.top/)
 
 ## 功能特性
 
@@ -82,7 +82,7 @@ openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out private_key.pe
 openssl pkey -in private_key.pem -pubout -out public_key.pem
 ```
 
-将生成的公钥根据**"env.example"**里的提示替换掉,并将**"env.example"**重命名为**".env"**
+将生成的公钥根据"**env.example**"里的提示替换掉,并将"**env.example**"重命名为"**.env**"
 
 ### RSA 公钥配置
 

@@ -11,9 +11,19 @@
       <Header @toggle-sidebar="toggleSidebar" />
     </div>
     <div class="main-body">
+      <!-- 侧边栏占位符，仅在非锁定模式且非移动端显示 -->
+      <div 
+        v-if="!isLocked && !showMobileSidebar" 
+        class="sidebar-placeholder"
+      ></div>
+
       <div 
         class="sidebar-container" 
-        :class="{ 'is-collapsed': isCollapse, 'mobile-open': showMobileSidebar }"
+        :class="{ 
+          'is-collapsed': isCollapse, 
+          'mobile-open': showMobileSidebar,
+          'is-floating': !isLocked && !showMobileSidebar 
+        }"
         @mouseenter="handleMouseEnter"
         @mouseleave="handleMouseLeave"
       >
@@ -90,6 +100,14 @@ const toggleSidebar = () => {
   display: flex;
   flex: 1;
   overflow: hidden;
+  position: relative; /* 确保绝对定位的侧边栏相对于此容器定位 */
+}
+
+.sidebar-placeholder {
+  width: 64px;
+  flex-shrink: 0;
+  height: 100%;
+  background: transparent; /* 占位符不需要背景 */
 }
 
 .sidebar-container {
@@ -103,6 +121,17 @@ const toggleSidebar = () => {
   transition: width 0.3s ease-in-out;
   overflow: hidden;
   position: relative;
+  /* 优化性能：告诉浏览器这个元素的某些属性会变化 */
+  will-change: width;
+}
+
+.sidebar-container.is-floating {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 1002;
+  box-shadow: 4px 0 8px rgba(0, 0, 0, 0.1); /* 浮动时添加阴影以区分层级 */
 }
 
 .sidebar-container.is-collapsed {
