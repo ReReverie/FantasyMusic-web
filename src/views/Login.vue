@@ -410,13 +410,9 @@ const handleResetPassword = () => {
 const saveRememberMe = () => {
   if (rememberMe.value) {
     localStorage.setItem('login_username', loginForm.username)
-    // 简单保存密码（Base64编码），仅供演示
-    // 注意：实际生产环境不建议保存明文密码，或者应该使用更安全的存储方式
-    localStorage.setItem('login_password', btoa(loginForm.password))
     localStorage.setItem('login_remember', 'true')
   } else {
     localStorage.removeItem('login_username')
-    localStorage.removeItem('login_password')
     localStorage.removeItem('login_remember')
   }
 }
@@ -434,15 +430,7 @@ const checkRememberMe = () => {
   if (remember === 'true') {
     rememberMe.value = true
     const username = localStorage.getItem('login_username')
-    const password = localStorage.getItem('login_password')
     if (username) loginForm.username = username
-    if (password) {
-      try {
-        loginForm.password = atob(password)
-      } catch (e) {
-        console.error('Failed to decode password')
-      }
-    }
   }
 }
 

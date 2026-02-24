@@ -58,7 +58,9 @@ FantasyMusic-web/
 
 ## 环境变量配置
 
-本项目使用环境变量来配置部分敏感信息或可变参数。请在项目根目录下创建 `.env` 文件（或 `.env.development`, `.env.production` 等），并添加以下配置：
+本项目使用环境变量来配置部分敏感信息或可变参数。已提供 `.env.example` 文件作为配置模板。
+
+请复制 `.env.example` 文件并重命名为 `.env`（开发环境）或 `.env.production`（生产环境），然后修改其中的配置项。
 
 ### RSA 公钥配置
 
@@ -118,7 +120,7 @@ npm run preview
 
 ## 许可证
 
-[MIT](LICENSE)
+[MIT](LICENSE) © [ReReverie](https://github.com/ReReverie)
 
 ---
 
