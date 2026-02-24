@@ -13,7 +13,7 @@
     <div class="main-body">
       <!-- 侧边栏占位符，仅在非锁定模式且非移动端显示 -->
       <div 
-        v-if="!isLocked && !showMobileSidebar" 
+        v-if="!isLocked && !showMobileSidebar && !isMobile" 
         class="sidebar-placeholder"
       ></div>
 
@@ -22,7 +22,7 @@
         :class="{ 
           'is-collapsed': isCollapse, 
           'mobile-open': showMobileSidebar,
-          'is-floating': !isLocked && !showMobileSidebar 
+          'is-floating': !isLocked && !showMobileSidebar && !isMobile 
         }"
         @mouseenter="handleMouseEnter"
         @mouseleave="handleMouseLeave"
@@ -45,7 +45,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import Header from './components/Header.vue'
 import Sidebar from './components/Sidebar.vue'
 import AppMain from './components/AppMain.vue'
@@ -55,18 +55,35 @@ import FooterPlayer from './components/FooterPlayer.vue'
 const isLocked = ref(false) // 默认不锁定（自动隐藏）
 const isHover = ref(false)
 const showMobileSidebar = ref(false)
+const isMobile = ref(false)
+
+const checkMobile = () => {
+  isMobile.value = window.innerWidth <= 768
+}
+
+onMounted(() => {
+  checkMobile()
+  window.addEventListener('resize', checkMobile)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', checkMobile)
+})
 
 // 计算是否折叠：如果没有锁定且鼠标不在上面，则折叠
 const isCollapse = computed(() => {
+  if (isMobile.value) return false // Mobile mode logic handled separately
   if (showMobileSidebar.value) return false // Mobile drawer always expanded
   return !isLocked.value && !isHover.value
 })
 
 const handleMouseEnter = () => {
+  if (isMobile.value) return
   isHover.value = true
 }
 
 const handleMouseLeave = () => {
+  if (isMobile.value) return
   isHover.value = false
 }
 
@@ -152,5 +169,51 @@ const toggleSidebar = () => {
 }
 .main-container :deep(.el-scrollbar__view) {
   min-height: 100%;
+}
+
+@media screen and (max-width: 768px) {
+  .sidebar-container {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 1002;
+    width: 200px !important; /* 移动端固定宽度 */
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translateX(-100%); /* 默认移出屏幕 */
+    background-color: var(--sidebar-bg);
+  }
+
+  .sidebar-container.mobile-open {
+    transform: translateX(0); /* 展开时移入 */
+    box-shadow: 4px 0 8px rgba(0, 0, 0, 0.1);
+  }
+
+  /* 移除 PC 端的 is-collapsed 样式在移动端的影响 */
+  .sidebar-container.is-collapsed {
+    width: 200px !important;
+  }
+  
+  /* 确保主内容区域占满屏幕 */
+  .main-container {
+    width: 100%;
+    margin-left: 0 !important;
+  }
+
+  .sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1001;
+    display: none;
+    backdrop-filter: blur(4px);
+  }
+
+  .sidebar-overlay.show {
+    display: block;
+  }
 }
 </style>
