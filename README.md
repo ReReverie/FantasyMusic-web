@@ -60,7 +60,7 @@ FantasyMusic-web/
 
 本项目使用环境变量来配置部分敏感信息或可变参数。已提供 `.env.example` 文件作为配置模板。
 
-请复制 `.env.example` 文件并重命名为 `.env`（开发环境）或 `.env.production`（生产环境），然后修改其中的配置项。
+请复制 `.env.example` 文件并重命名为 `.env`（开发环境）或 `.env.production`（线上环境），然后修改其中的配置项。
 
 ### RSA 公钥配置
 
