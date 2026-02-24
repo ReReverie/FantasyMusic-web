@@ -56,11 +56,33 @@ FantasyMusic-web/
 └── README.md            # 项目文档
 ```
 
-## 环境变量配置
+## 快速开始
 
-本项目使用环境变量来配置部分敏感信息或可变参数。已提供 `.env.example` 文件作为配置模板。
+### 环境要求
 
-请复制 `.env.example` 文件并重命名为 `.env`（开发环境）或 `.env.production`（线上环境），然后修改其中的配置项。
+- [Node.js](https://nodejs.org/) (推荐使用 LTS 版本)
+- [npm](https://www.npmjs.com/) 或 [yarn](https://yarnpkg.com/)
+
+### 前置步骤
+
+请使用OpenSSL或者ssh-keygen生成对应的密钥对
+
+以下是OpenSSL步骤
+
+```bash
+# 生成 2048 位私钥（PEM）
+openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out private_key.pem
+```
+
+> 请保留当前私钥,后续用于服务端
+
+从私钥导出公钥
+
+```bash
+openssl pkey -in private_key.pem -pubout -out public_key.pem
+```
+
+将生成的公钥根据**"env.example"**里的提示替换掉,并将**"env.example"**重命名为**".env"**
 
 ### RSA 公钥配置
 
@@ -73,13 +95,6 @@ YOUR_PUBLIC_KEY_HERE
 ```
 
 如果未配置该环境变量，项目将使用内置的默认公钥。
-
-## 快速开始
-
-### 环境要求
-
-- [Node.js](https://nodejs.org/) (推荐使用 LTS 版本)
-- [npm](https://www.npmjs.com/) 或 [yarn](https://yarnpkg.com/)
 
 ### 安装步骤
 
@@ -112,7 +127,7 @@ npm run dev
 npm run build
 ```
 
-本地预览生产构建：
+本地预览线上构建：
 
 ```bash
 npm run preview

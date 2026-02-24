@@ -1,12 +1,7 @@
 import JSEncrypt from 'jsencrypt'
 
 // 公钥 - 用于前端加密
-const PUBLIC_KEY = import.meta.env.VITE_RSA_PUBLIC_KEY || `-----BEGIN PUBLIC KEY-----
-MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDjnZ2z7eZVeEg/8qX1xDbsxd9A
-CgcJUs73C1GInCSHoOWmcdaaVsfBlnxaccJmO39NtUSmhps6DFUCYjaoZfgw6BXZ
-3NLIQPFp3u2qurlc4I+C8BXt04qqOoVXxSyXHtBJom98qWwiiXddy8H9KgevblLW
-r6vnlbBlpPfNoVChEQIDAQAB
------END PUBLIC KEY-----`
+const PUBLIC_KEY = import.meta.env.VITE_RSA_PUBLIC_KEY
 
 /**
  * RSA加密
