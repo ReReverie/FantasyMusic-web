@@ -104,9 +104,9 @@ npm run dev
 
 打开浏览器并访问 `http://localhost:5173` (或终端中显示的端口)。
 
-### 生产环境构建
+### 线上环境构建
 
-构建生产版本：
+线上版本：
 
 ```bash
 npm run build
@@ -117,6 +117,12 @@ npm run build
 ```bash
 npm run preview
 ```
+
+## 项目截图
+
+|             PC 端              |                        移动端                         |
+| :----------------------------: | :---------------------------------------------------: |
+| ![PC 截图](screenshots/pc.png) | <img src="screenshots/phone.png" style="zoom:50%;" /> |
 
 ## 许可证
 
