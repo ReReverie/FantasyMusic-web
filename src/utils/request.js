@@ -39,7 +39,8 @@ service.interceptors.response.use(
              ElMessage({
               message: res.msg || 'Error',
               type: 'error',
-              duration: 5 * 1000
+              duration: 5 * 1000,
+              grouping: true
             })
             const err = new Error(res.msg || 'Error')
             err.code = res.code
@@ -68,7 +69,8 @@ service.interceptors.response.use(
         ElMessage({
           message: res.msg || 'Error',
           type: 'error',
-          duration: 5 * 1000
+          duration: 5 * 1000,
+          grouping: true
         })
       }
       const err = new Error(res.msg || 'Error')
@@ -82,26 +84,69 @@ service.interceptors.response.use(
   error => {
     console.log('err' + error) // for debug
     
-    let message = error.message
-    if (error.response && error.response.data) {
-      // 尝试获取后端返回的具体错误信息 (msg 或 message)
-      message = error.response.data.msg || error.response.data.message || message
+    // 如果配置了 skipErrorMessage，直接抛出错误
+    if (error.config && error.config.skipErrorMessage) {
+      return Promise.reject(error)
     }
 
-    // 允许通过配置 skipErrorMessage 跳过默认的错误提示
-    if (!error.config || !error.config.skipErrorMessage) {
-      // 检查是否是网络错误
-      if (error.message === 'Network Error') {
-        ElMessage.error('无法连接到服务器，请检查后端服务是否启动，或者代理配置是否生效')
+    let message = error.message
+    let code = 0
+
+    if (error.response) {
+      // 请求已发出，但服务器响应的状态码不在 2xx 范围内
+      code = error.response.status
+      // 尝试获取后端返回的具体错误信息 (msg 或 message)
+      const data = error.response.data
+      if (data && (data.msg || data.message)) {
+        message = data.msg || data.message
       } else {
-        ElMessage({
-          message: message,
-          type: 'error',
-          duration: 5 * 1000
-        })
+        // 根据状态码设置默认提示
+        switch (code) {
+          case 400: message = '请求错误 (400)'; break
+          case 401: message = '未授权，请重新登录 (401)'; break
+          case 403: message = '拒绝访问 (403)'; break
+          case 404: message = '请求出错 (404)'; break
+          case 408: message = '请求超时 (408)'; break
+          case 500: message = '服务器错误 (500)'; break
+          case 501: message = '服务未实现 (501)'; break
+          case 502: message = '网络错误 (502)'; break
+          case 503: message = '服务不可用 (503)'; break
+          case 504: message = '网络超时 (504)'; break
+          case 505: message = 'HTTP版本不受支持 (505)'; break
+          default: message = `连接出错 (${code})`
+        }
+      }
+    } else {
+      // 请求未发出或没有收到响应
+      if (message.includes('timeout')) {
+        message = '请求超时，请检查网络连接'
+      } else if (message.includes('Network Error')) {
+        message = '无法连接到服务器，请检查后端服务是否启动'
+      } else {
+        message = '未知错误'
       }
     }
+
+    // 使用 grouping: true 合并重复的错误提示
+    ElMessage({
+      message: message,
+      type: 'error',
+      duration: 5 * 1000,
+      grouping: true
+    })
     
+    // 针对 401 错误，可能需要跳转登录页
+    if (code === 401) {
+      // 这里可以引入 store 或者 router 进行跳转，为了避免循环引用，简单处理
+      localStorage.removeItem('token')
+      // 如果不是在登录页，跳转登录页
+      if (window.location.pathname !== '/login') {
+         setTimeout(() => {
+           window.location.href = '/login'
+         }, 1500)
+      }
+    }
+
     // 更新 error 对象的信息，以便后续 catch 块能获取到正确的错误信息
     error.message = message
     error.isHandled = true
