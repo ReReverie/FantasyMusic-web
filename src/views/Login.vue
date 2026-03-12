@@ -249,8 +249,15 @@ const resetRules = {
 const refreshCaptcha = () => {
   getCaptcha().then(res => {
     if (res && res.img) {
-      captchaImage.value = res.img
+      const img = res.img
+      if (img.startsWith('data:image')) {
+        captchaImage.value = img
+      } else {
+        const separator = img.includes('?') ? '&' : '?'
+        captchaImage.value = `${img}${separator}t=${Date.now()}`
+      }
       loginForm.captchaUuid = res.uuid
+      loginForm.captchaCode = ''
     }
   }).catch(err => {
     console.error('Failed to load captcha', err)
