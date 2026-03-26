@@ -35,16 +35,8 @@
       <div class="search-bar" style="margin-bottom: 20px;">
         <div class="search-inputs">
           <el-input
-            v-model="searchQuery.title"
-            placeholder="搜索歌曲标题"
-            class="search-input"
-            clearable
-            @clear="handleSearch"
-            @keyup.enter="handleSearch"
-          />
-          <el-input
-            v-model="searchQuery.artist"
-            placeholder="搜索歌手"
+            v-model="searchQuery.keyword"
+            placeholder="搜索标题/专辑/歌手"
             class="search-input"
             clearable
             @clear="handleSearch"
@@ -87,10 +79,10 @@
             </div>
           </div>
           <div class="card-center">
-            <div class="card-title">{{ item.title }}</div>
+            <div class="card-title" v-html="item.title"></div>
             <div class="card-artist">
               <el-tag v-if="item.quality" size="small" type="warning" effect="dark" class="quality-tag">{{ item.quality || 'HQ' }}</el-tag>
-              {{ item.artist }}
+              <span v-html="item.artist"></span>
             </div>
           </div>
           <div class="card-right" v-if="!isBatchMode">
@@ -138,16 +130,20 @@
                 </template>
               </el-image>
               <div style="display: flex; flex-direction: column; justify-content: center; overflow: hidden;">
-                <span style="font-size: 14px; font-weight: 500; color: var(--text-main); margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ scope.row.title }}</span>
+                <span style="font-size: 14px; font-weight: 500; color: var(--text-main); margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" v-html="scope.row.title"></span>
                 <span style="font-size: 12px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                    <el-tag v-if="scope.row.quality" size="small" type="warning" effect="dark" style="transform: scale(0.8); transform-origin: left center; margin-right: 4px;">{{ scope.row.quality || 'HQ' }}</el-tag>
-                   {{ scope.row.artist }}
+                   <span v-html="scope.row.artist"></span>
                 </span>
               </div>
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="album" label="专辑" min-width="150" show-overflow-tooltip class-name="hidden-mobile" />
+        <el-table-column label="专辑" min-width="150" show-overflow-tooltip class-name="hidden-mobile">
+          <template #default="scope">
+            <span v-html="scope.row.album"></span>
+          </template>
+        </el-table-column>
         <el-table-column prop="durationMs" label="时长" width="80" class-name="hidden-mobile">
           <template #default="scope">
             {{ formatDuration(scope.row.durationMs) }}
@@ -241,7 +237,7 @@ import { getMusicPage, deleteMusic, batchDeleteMusic, downloadMusic, searchMusic
 import { getMusicLists, addMusicToMusicList, batchAddMusicToMusicList } from '@/api/musiclist'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Picture, VideoPlay, Download, Star, Delete, Check } from '@element-plus/icons-vue'
-import { getCoverUrl } from '@/utils/music-utils'
+import { getCoverUrl, stripHtml } from '@/utils/music-utils'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -412,8 +408,7 @@ const scrollToTop = () => {
 }
 
 const searchQuery = ref({
-  title: '',
-  artist: ''
+  keyword: ''
 })
 
 const handleSearch = () => {
@@ -423,8 +418,7 @@ const handleSearch = () => {
 
 const handleReset = () => {
   searchQuery.value = {
-    title: '',
-    artist: ''
+    keyword: ''
   }
   handleSearch()
 }
@@ -504,12 +498,11 @@ const fetchMusicList = async () => {
   try {
     let res
     // 如果有搜索条件，使用 searchMusic 接口
-    if (searchQuery.value.title || searchQuery.value.artist) {
+    if (searchQuery.value.keyword) {
       res = await searchMusic({
         pageNum: currentPage.value,
         pageSize: pageSize.value,
-        title: searchQuery.value.title,
-        artist: searchQuery.value.artist
+        keyword: searchQuery.value.keyword
       })
     } else {
       // 否则使用 getMusicPage 接口
@@ -605,7 +598,7 @@ const handleDownload = async (row) => {
     if (response && response.data) {
         // ... (原有的 Blob 处理逻辑，略微保留以防万一，但主要依赖 URL)
          // 尝试从 header 中获取文件名
-        let fileName = `${row.title}.mp3`
+        let fileName = `${stripHtml(row.title)}.mp3`
         const contentDisposition = response.headers['content-disposition']
         if (contentDisposition) {
           let match = contentDisposition.match(/filename\*=UTF-8''(.+)/i)
@@ -972,6 +965,13 @@ const formatDuration = (ms) => {
 .music-container .el-pagination.is-background .btn-next:disabled {
   background-color: transparent !important;
   opacity: 0.5;
+}
+
+/* 搜索高亮样式 */
+.music-container em {
+  color: var(--primary-color);
+  font-style: normal;
+  font-weight: bold;
 }
 </style>
 

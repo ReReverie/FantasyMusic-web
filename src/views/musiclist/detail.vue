@@ -103,10 +103,10 @@
             </div>
           </div>
           <div class="card-center">
-            <div class="card-title">{{ item.title }}</div>
+            <div class="card-title" v-html="item.title"></div>
             <div class="card-artist">
               <el-tag v-if="item.quality" size="small" type="warning" effect="dark" class="quality-tag">{{ item.quality || 'HQ' }}</el-tag>
-              {{ item.artist }}
+              <span v-html="item.artist"></span>
             </div>
           </div>
           <div class="card-right" v-if="!isBatchMode">
@@ -155,16 +155,20 @@
                  </template>
                </el-image>
                <div style="display: flex; flex-direction: column; justify-content: center; overflow: hidden;">
-                 <span style="font-size: 14px; font-weight: 500; color: var(--text-main); margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ scope.row.title }}</span>
+                 <span style="font-size: 14px; font-weight: 500; color: var(--text-main); margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" v-html="scope.row.title"></span>
                  <span style="font-size: 12px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                     <el-tag v-if="scope.row.quality" size="small" type="warning" effect="dark" style="transform: scale(0.8); transform-origin: left center; margin-right: 4px;">{{ scope.row.quality || 'HQ' }}</el-tag>
-                    {{ scope.row.artist }}
+                    <span v-html="scope.row.artist"></span>
                  </span>
                </div>
              </div>
           </template>
         </el-table-column>
-        <el-table-column prop="album" label="专辑" show-overflow-tooltip />
+        <el-table-column label="专辑" show-overflow-tooltip>
+          <template #default="scope">
+            <span v-html="scope.row.album"></span>
+          </template>
+        </el-table-column>
         <el-table-column prop="durationMs" label="时长" width="100">
           <template #default="scope">
             {{ formatDuration(scope.row.durationMs) }}
@@ -238,7 +242,7 @@ import { downloadMusic } from '@/api/music'
 import { usePlayerStore } from '@/store/player'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { ArrowLeft, Picture, VideoPlay, Search, Download, Delete, Edit, Check, MoreFilled } from '@element-plus/icons-vue'
-import { getCoverUrl, getPlaylistCover, formatDate } from '@/utils/music-utils'
+import { getCoverUrl, getPlaylistCover, formatDate, stripHtml } from '@/utils/music-utils'
 
 const route = useRoute()
 const router = useRouter()
@@ -500,7 +504,7 @@ const handleDownload = async (row) => {
     if (!response || !response.data) return
 
     // 尝试从 header 中获取文件名
-    let fileName = `${row.title}.mp3`
+    let fileName = `${stripHtml(row.title)}.mp3`
     const contentDisposition = response.headers['content-disposition']
     if (contentDisposition) {
       // 优先匹配 filename*=UTF-8''
@@ -793,6 +797,13 @@ onUnmounted(() => {
 .menu-item.delete:hover {
   background-color: #fef0f0;
   color: #f56c6c;
+}
+
+/* 搜索高亮样式 */
+.musiclist-detail-container em {
+  color: var(--primary-color);
+  font-style: normal;
+  font-weight: bold;
 }
 
 .table-toolbar {

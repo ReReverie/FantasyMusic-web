@@ -56,8 +56,8 @@
           </template>
         </el-image>
         <div class="music-info">
-          <div class="title" :title="playerStore.currentMusic?.title">{{ playerStore.currentMusic?.title || '未播放' }}</div>
-          <div class="artist" :title="playerStore.currentMusic?.artist">{{ playerStore.currentMusic?.artist || '---' }}</div>
+          <div class="title" :title="stripHtml(playerStore.currentMusic?.title)" v-html="playerStore.currentMusic?.title || '未播放'"></div>
+          <div class="artist" :title="stripHtml(playerStore.currentMusic?.artist)" v-html="playerStore.currentMusic?.artist || '---'"></div>
         </div>
       </div>
       
@@ -164,8 +164,8 @@
                         @click="playItem(item)"
                     >
                         <div class="song-info">
-                            <span class="song-title">{{ item.title }}</span>
-                            <span class="song-artist">- {{ item.artist }}</span>
+                            <span class="song-title" :title="stripHtml(item.title)" v-html="item.title"></span>
+                            <span class="song-artist" :title="stripHtml(item.artist)" v-html="'- ' + item.artist"></span>
                         </div>
                         <el-icon v-if="playerStore.currentMusic?.id === item.id" class="playing-icon"><VideoPlay /></el-icon>
                     </li>
@@ -187,7 +187,7 @@ import {
     Headset, VideoPlay, VideoPause, ArrowLeft, ArrowRight, 
     Refresh, RefreshRight, Sort, Operation, List, Lock, Unlock
 } from '@element-plus/icons-vue'
-import { getCoverUrl } from '@/utils/music-utils'
+import { getCoverUrl, stripHtml } from '@/utils/music-utils'
 import { ElMessage } from 'element-plus'
 
 const playerStore = usePlayerStore()
@@ -1009,5 +1009,12 @@ onUnmounted(() => {
       width: 100%;
       max-height: 50vh;
   }
+}
+
+/* 搜索高亮样式 */
+.footer-player-wrapper em {
+  color: var(--primary-color);
+  font-style: normal;
+  font-weight: bold;
 }
 </style>

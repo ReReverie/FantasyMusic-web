@@ -52,3 +52,9 @@ export function formatDate(timeStr) {
   // 简单处理：截取 T 之前的部分
   return timeStr.split('T')[0]
 }
+
+// 移除 HTML 标签，用于去除高亮等标记
+export function stripHtml(html) {
+  if (!html) return ''
+  return html.replace(/<[^>]+>/g, '')
+}
