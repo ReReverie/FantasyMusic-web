@@ -56,8 +56,12 @@
           </template>
         </el-image>
         <div class="music-info">
-          <div class="title" :title="stripHtml(playerStore.currentMusic?.title)" v-html="playerStore.currentMusic?.title || '未播放'"></div>
-          <div class="artist" :title="stripHtml(playerStore.currentMusic?.artist)" v-html="playerStore.currentMusic?.artist || '---'"></div>
+          <ScrollText :text="playerStore.currentMusic?.title" class="title" :title="stripHtml(playerStore.currentMusic?.title)">
+            <span v-html="playerStore.currentMusic?.title || '未播放'"></span>
+          </ScrollText>
+          <ScrollText :text="playerStore.currentMusic?.artist" class="artist" :title="stripHtml(playerStore.currentMusic?.artist)">
+            <span v-html="playerStore.currentMusic?.artist || '---'"></span>
+          </ScrollText>
         </div>
       </div>
       
@@ -183,6 +187,7 @@
 <script setup>
 import { ref, watch, onMounted, onUnmounted, computed } from 'vue'
 import { usePlayerStore } from '@/store/player'
+import ScrollText from '@/components/ScrollText.vue'
 import { 
     Headset, VideoPlay, VideoPause, ArrowLeft, ArrowRight, 
     Refresh, RefreshRight, Sort, Operation, List, Lock, Unlock
@@ -634,24 +639,23 @@ onUnmounted(() => {
 .music-info {
   flex: 1;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .music-info .title {
   font-size: 14px;
   font-weight: 600;
   color: var(--text-main);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
   margin-bottom: 4px;
+  width: 100%;
 }
 
 .music-info .artist {
   font-size: 12px;
   color: var(--text-secondary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  width: 100%;
 }
 
 /* 中间控制器 */
