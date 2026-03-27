@@ -34,14 +34,20 @@
       
       <div class="search-bar" style="margin-bottom: 20px;">
         <div class="search-inputs">
-          <el-input
+          <el-autocomplete
             v-model="searchQuery.keyword"
+            :fetch-suggestions="querySearchSuggestions"
             placeholder="搜索标题/专辑/歌手"
             class="search-input"
             clearable
             @clear="handleSearch"
+            @select="handleSearch"
             @keyup.enter="handleSearch"
-          />
+          >
+            <template #default="{ item }">
+              <div class="suggestion-item" v-html="item.value"></div>
+            </template>
+          </el-autocomplete>
         </div>
         <div class="search-actions">
           <el-button type="primary" @click="handleSearch">搜索</el-button>
@@ -233,7 +239,8 @@ import { ref, onMounted, onUnmounted, computed, nextTick, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
 import { usePlayerStore } from '@/store/player'
-import { getMusicPage, deleteMusic, batchDeleteMusic, downloadMusic, searchMusic } from '@/api/music'
+import { getMusicPage, deleteMusic, batchDeleteMusic, downloadMusic } from '@/api/music'
+import { searchMusic, suggestMusic } from '@/api/search'
 import { getMusicLists, addMusicToMusicList, batchAddMusicToMusicList } from '@/api/musiclist'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Picture, VideoPlay, Download, Star, Delete, Check } from '@element-plus/icons-vue'
@@ -411,7 +418,30 @@ const searchQuery = ref({
   keyword: ''
 })
 
+const querySearchSuggestions = async (queryString, cb) => {
+  if (!queryString) {
+    cb([])
+    return
+  }
+  try {
+    const res = await suggestMusic(queryString)
+    // res 预期为 List<String>，我们将其转换为 el-autocomplete 需要的格式 [{ value: 'xxx' }]
+    const suggestions = (res || []).map(item => ({ value: item }))
+    cb(suggestions)
+  } catch (error) {
+    console.error('获取搜索建议失败:', error)
+    cb([])
+  }
+}
+
 const handleSearch = () => {
+  // 如果是从 suggestion 选中，它可能传入了一个对象 { value: '...' }，需要兼容处理
+  if (arguments.length > 0 && typeof arguments[0] === 'object' && arguments[0].value) {
+    searchQuery.value.keyword = arguments[0].value
+    // 去除选中值中可能包含的 html 标签用于实际搜索，或者直接用原始值（取决于后端支持）
+    // 为了简单，我们使用去除 html 标签后的纯文本
+    searchQuery.value.keyword = stripHtml(arguments[0].value)
+  }
   currentPage.value = 1
   fetchMusicList()
 }

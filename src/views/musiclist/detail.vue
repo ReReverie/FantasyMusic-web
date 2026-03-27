@@ -57,20 +57,25 @@
             </el-button>
           </template>
         </div>
-        <el-input
+        <el-autocomplete
           v-model="searchQuery"
+          :fetch-suggestions="querySearchSuggestions"
           placeholder="搜索标题/专辑/歌手"
           class="search-input"
           clearable
           @clear="handleSearch"
+          @select="handleSearch"
           @keyup.enter="handleSearch"
         >
+          <template #default="{ item }">
+            <div class="suggestion-item" v-html="item.value"></div>
+          </template>
           <template #append>
             <el-button @click="handleSearch" class="search-btn">
               <el-icon><Search /></el-icon>
             </el-button>
           </template>
-        </el-input>
+        </el-autocomplete>
       </div>
 
       <!-- Mobile Card List View -->
@@ -239,6 +244,7 @@ import { ref, onMounted, onUnmounted, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getMusicListDetail, removeMusicFromMusicList, batchRemoveMusicFromMusicList, searchMusicInList, updateMusicList } from '@/api/musiclist'
 import { downloadMusic } from '@/api/music'
+import { suggestMusic } from '@/api/search'
 import { usePlayerStore } from '@/store/player'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { ArrowLeft, Picture, VideoPlay, Search, Download, Delete, Edit, Check, MoreFilled } from '@element-plus/icons-vue'
@@ -454,7 +460,26 @@ const handlePlayAll = () => {
   }
 }
 
+const querySearchSuggestions = async (queryString, cb) => {
+  if (!queryString) {
+    cb([])
+    return
+  }
+  try {
+    const res = await suggestMusic(queryString)
+    const suggestions = (res || []).map(item => ({ value: item }))
+    cb(suggestions)
+  } catch (error) {
+    console.error('获取搜索建议失败:', error)
+    cb([])
+  }
+}
+
 const handleSearch = async () => {
+  if (arguments.length > 0 && typeof arguments[0] === 'object' && arguments[0].value) {
+    searchQuery.value = stripHtml(arguments[0].value)
+  }
+
   if (!searchQuery.value) {
     // 如果清空搜索框，恢复显示所有歌曲
     tableData.value = detail.value.musics || []
